@@ -20,6 +20,9 @@ const EditPage: NextPage = () => {
     if (value === "flower") {
       setFlowerSelectOverlayOpen(true);
     }
+    if (value === "image") {
+      selectImageFile();
+    }
   };
 
   const handleLayerDrawer = () => {
@@ -33,6 +36,28 @@ const EditPage: NextPage = () => {
   const handleSelectItem = () => {
     console.log("select!");
     handleFlowerSelectOverlay();
+  };
+
+  const selectImageFile = () => {
+    const input = document.createElement("input");
+    input.type = "file";
+    input.accept = "image/*";
+    input.multiple = false;
+    input.onchange = (e) => {
+      const target = e.target as HTMLInputElement | null;
+      const file = target?.files && target.files[0];
+
+      if (file) {
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = (readerEvent) => {
+          const imageBase64 = readerEvent.target?.result;
+          console.log(imageBase64);
+        };
+      }
+    };
+
+    input.click();
   };
 
   return (
