@@ -3,7 +3,6 @@ import { BottomNavigation, BottomNavigationAction } from "@material-ui/core";
 import {
   Layers as LayerIcon,
   InsertPhoto as ImageIcon,
-  LocationOn as LocationOnIcon,
   LocalFlorist as FlowerIcon,
 } from "@material-ui/icons";
 import { makeStyles } from "@material-ui/styles";
