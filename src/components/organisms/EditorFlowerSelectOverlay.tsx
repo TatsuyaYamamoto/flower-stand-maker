@@ -14,37 +14,115 @@ import {
 import { makeStyles } from "@material-ui/styles";
 
 interface FlowerListProps {
-  onSelect: () => void;
+  onSelect: (src: string) => void;
 }
 
 const FlowerList: FC<FlowerListProps> = (props) => {
   const { onSelect } = props;
-
+  const onClick = (src: string) => () => {
+    onSelect(src);
+  };
+  const list = [
+    { src: `/assets/images/flower0141.png` },
+    { src: `/assets/images/flower0145.png` },
+    { src: `/assets/images/flower0221.png` },
+    { src: `/assets/images/flower0245.png` },
+    { src: `/assets/images/flower0141.png` },
+    { src: `/assets/images/flower0145.png` },
+    { src: `/assets/images/flower0221.png` },
+    { src: `/assets/images/flower0245.png` },
+    { src: `/assets/images/flower0141.png` },
+    { src: `/assets/images/flower0145.png` },
+    { src: `/assets/images/flower0221.png` },
+    { src: `/assets/images/flower0245.png` },
+    { src: `/assets/images/flower0141.png` },
+    { src: `/assets/images/flower0145.png` },
+    { src: `/assets/images/flower0221.png` },
+    { src: `/assets/images/flower0245.png` },
+    { src: `/assets/images/flower0141.png` },
+    { src: `/assets/images/flower0145.png` },
+    { src: `/assets/images/flower0221.png` },
+    { src: `/assets/images/flower0245.png` },
+    { src: `/assets/images/flower0141.png` },
+    { src: `/assets/images/flower0145.png` },
+    { src: `/assets/images/flower0221.png` },
+    { src: `/assets/images/flower0245.png` },
+    { src: `/assets/images/flower0141.png` },
+    { src: `/assets/images/flower0145.png` },
+    { src: `/assets/images/flower0221.png` },
+    { src: `/assets/images/flower0245.png` },
+    { src: `/assets/images/flower0141.png` },
+    { src: `/assets/images/flower0145.png` },
+    { src: `/assets/images/flower0221.png` },
+    { src: `/assets/images/flower0245.png` },
+  ];
   return (
-    <div>
-      <ul>
-        <li onClick={onSelect}>Flower1</li>
-        <li>Flower2</li>
-        <li>Flower3</li>
-      </ul>
+    <div style={{ marginTop: 120 }}>
+      {list.map((item, index) => (
+        <img
+          key={index}
+          src={item.src}
+          width={100}
+          onClick={onClick(item.src)}
+        />
+      ))}
     </div>
   );
 };
 
 interface BalloonListProps {
-  onSelect: () => void;
+  onSelect: (src: string) => void;
 }
 
 const BalloonList: FC<BalloonListProps> = (props) => {
   const { onSelect } = props;
+  const onClick = (src: string) => () => {
+    onSelect(src);
+  };
+
+  const list = [
+    { src: `/assets/images/flower0221.png` },
+    { src: `/assets/images/flower0245.png` },
+    { src: `/assets/images/flower0141.png` },
+    { src: `/assets/images/flower0145.png` },
+    { src: `/assets/images/flower0221.png` },
+    { src: `/assets/images/flower0245.png` },
+    { src: `/assets/images/flower0141.png` },
+    { src: `/assets/images/flower0145.png` },
+    { src: `/assets/images/flower0221.png` },
+    { src: `/assets/images/flower0245.png` },
+    { src: `/assets/images/flower0141.png` },
+    { src: `/assets/images/flower0145.png` },
+    { src: `/assets/images/flower0221.png` },
+    { src: `/assets/images/flower0245.png` },
+    { src: `/assets/images/flower0141.png` },
+    { src: `/assets/images/flower0145.png` },
+    { src: `/assets/images/flower0221.png` },
+    { src: `/assets/images/flower0245.png` },
+    { src: `/assets/images/flower0141.png` },
+    { src: `/assets/images/flower0145.png` },
+    { src: `/assets/images/flower0221.png` },
+    { src: `/assets/images/flower0245.png` },
+    { src: `/assets/images/flower0141.png` },
+    { src: `/assets/images/flower0145.png` },
+    { src: `/assets/images/flower0221.png` },
+    { src: `/assets/images/flower0245.png` },
+    { src: `/assets/images/flower0141.png` },
+    { src: `/assets/images/flower0145.png` },
+    { src: `/assets/images/flower0221.png` },
+    { src: `/assets/images/flower0245.png` },
+  ];
 
   return (
-    <div>
-      <ul>
-        <li onClick={onSelect}>Balloon1</li>
-        <li>Balloon2</li>
-        <li>Balloon3</li>
-      </ul>
+    <div style={{ marginTop: 120 }}>
+      {list.map((item, index) => (
+        <img
+          key={index}
+          src={item.src}
+          width={100}
+          onClick={onClick(item.src)}
+        />
+      ))}
     </div>
   );
 };
@@ -52,6 +130,8 @@ const BalloonList: FC<BalloonListProps> = (props) => {
 const useStyles = makeStyles({
   backdrop: {
     zIndex: 100,
+    display: "block",
+    overflowY: "scroll",
   },
 });
 
@@ -75,7 +155,7 @@ const EditorFlowerSelectOverlay: FC<EditorFlowerSelectOverlayProps> = (
 
   return (
     <Backdrop className={classes.backdrop} open={open}>
-      <AppBar position="static">
+      <AppBar position="fixed">
         <Toolbar>
           <Button onClick={handleClose} color="inherit">
             Close
