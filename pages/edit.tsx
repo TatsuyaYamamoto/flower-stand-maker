@@ -3,10 +3,11 @@ import { NextPage } from "next";
 
 import EditorBottomNavigation, {
   EditorBottomNavigationValue,
-} from "../src/components/organisms/EditorBottomNavigation";
-import EditorLayerDrawer from "../src/components/organisms/EditorLayerDrawer";
-import EditorFlowerSelectOverlay from "../src/components/organisms/EditorFlowerSelectOverlay";
-import useHierarchy from "../src/components/hooks/useHierarchy";
+} from "@/components/organisms/EditorBottomNavigation";
+import EditorLayerDrawer from "@/components/organisms/EditorLayerDrawer";
+import EditorFlowerSelectOverlay from "@/components/organisms/EditorFlowerSelectOverlay";
+
+import useHierarchy from "@/components/hooks/useHierarchy";
 
 const EditPage: NextPage = () => {
   const [isLayerDrawerOpen, setLayerDrawerOpen] = useState(false);
