@@ -34,7 +34,7 @@ export type Hierarchy = {
 }[];
 
 const useHierarchy = () => {
-  const { flowers } = useRemoteObjects();
+  const { flowers, balloons } = useRemoteObjects();
   const [hierarchyState, setHierarchyState] = useState<HierarchyState>({});
 
   const hierarchy = useMemo<Hierarchy>(() => {
@@ -59,7 +59,9 @@ const useHierarchy = () => {
           hierarchyId: object.hierarchyId,
           type: object.type,
           // TODO type-safe
-          url: flowers.find(({ id }) => id === object.objectId)?.url as string,
+          url: [...flowers, ...balloons].find(
+            ({ id }) => id === object.objectId
+          )?.url as string,
           pointer: object.pointer,
         };
       }
@@ -72,7 +74,7 @@ const useHierarchy = () => {
         pointer: object.pointer,
       };
     });
-  }, [hierarchyState]);
+  }, [hierarchyState, flowers, balloons]);
 
   const addObject = useCallback(
     (params: { id: string; type: ObjectType }) => {
