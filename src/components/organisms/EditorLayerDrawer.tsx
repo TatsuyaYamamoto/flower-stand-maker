@@ -14,11 +14,11 @@ const EditorLayerDrawer: FC<EditorLayerDrawerProps> = (props) => {
   return (
     <Drawer anchor="right" open={open} onClose={onClose}>
       <ul>
-        {hierarchy.map((object) => (
-          <li>
-            <div>ObjectID: {object.objectId}</div>
-            <div>HierarchyId: {object.hierarchyId}</div>
-            <img width={100} src={object.url} />
+        {hierarchy.map(({ objectId, hierarchyId, url }) => (
+          <li key={hierarchyId}>
+            <div>ObjectID: {objectId}</div>
+            <div>HierarchyId: {hierarchyId}</div>
+            <img width={100} src={url} />
           </li>
         ))}
       </ul>

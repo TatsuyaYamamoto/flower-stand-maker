@@ -1,6 +1,8 @@
+/** @jsx jsx */
 import React, { useState } from "react";
 import { NextPage } from "next";
 import dynamic from "next/dynamic";
+import { jsx, css } from "@emotion/core";
 
 import EditorBottomNavigation, {
   EditorBottomNavigationValue,
@@ -76,7 +78,16 @@ const EditPage: NextPage = () => {
   return (
     <>
       <div>
-        <RendererWithNoSSR hierarchy={hierarchy} />
+        <div
+          css={css`
+            display: flex;
+            justify-content: center;
+
+            padding-top: 50px;
+          `}
+        >
+          <RendererWithNoSSR hierarchy={hierarchy} />
+        </div>
         <EditorBottomNavigation onClick={onBottomNavigationClicked} />
       </div>
       <EditorFlowerSelectOverlay
