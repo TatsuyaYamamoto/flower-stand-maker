@@ -1,6 +1,6 @@
 /** @jsx jsx */
 import React, { FC, useState } from "react";
-import { Stage, Sprite } from "@inlet/react-pixi";
+import { Stage, Sprite, Graphics } from "@inlet/react-pixi";
 import { InteractionEvent } from "pixi.js";
 import { jsx, css } from "@emotion/core";
 
@@ -63,23 +63,45 @@ const Renderer: FC<RendererProps> = (props) => {
       >
         {hierarchy
           .map(({ hierarchyId, url, pointer, type }) => {
+            const x = stageWidth * pointer.x;
+            const y = stageHeight * pointer.y;
+            const width = 100;
+            const height = 100;
+
             if (type === "image") {
               return (
-                <Sprite
-                  key={hierarchyId}
-                  image={url}
-                  x={stageWidth * pointer.x}
-                  y={stageHeight * pointer.y}
-                  width={100}
-                  height={100}
-                  anchor={0.5}
-                  interactive={true}
-                  buttonMode={true}
-                  pointerdown={onDragStart(hierarchyId)}
-                  pointermove={onDragMove(hierarchyId)}
-                  pointerup={onDragEnd(hierarchyId)}
-                  pointerupoutside={onDragEnd(hierarchyId)}
-                />
+                <React.Fragment key={hierarchyId}>
+                  {selectedHierarchyId === hierarchyId && (
+                    <Graphics
+                      draw={(g) => {
+                        g.clear();
+                        g.lineStyle(1, 0x111111, 0.5);
+                        // g.beginFill(0xff700b, 1);
+                        g.drawRect(
+                          x - width / 2,
+                          y - height / 2,
+                          width,
+                          height
+                        );
+                        g.endFill();
+                      }}
+                    />
+                  )}
+                  <Sprite
+                    image={url}
+                    x={x}
+                    y={y}
+                    width={width}
+                    height={height}
+                    anchor={0.5}
+                    interactive={true}
+                    buttonMode={true}
+                    pointerdown={onDragStart(hierarchyId)}
+                    pointermove={onDragMove(hierarchyId)}
+                    pointerup={onDragEnd(hierarchyId)}
+                    pointerupoutside={onDragEnd(hierarchyId)}
+                  />
+                </React.Fragment>
               );
             }
 
