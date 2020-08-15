@@ -9,7 +9,6 @@ import EditorBottomNavigation, {
 } from "@/components/organisms/EditorBottomNavigation";
 import EditorLayerDrawer from "@/components/organisms/EditorLayerDrawer";
 import EditorFlowerSelectOverlay from "@/components/organisms/EditorFlowerSelectOverlay";
-import Renderer from "@/components/organisms/Renderer";
 
 import useHierarchy from "@/components/hooks/useHierarchy";
 
@@ -23,7 +22,7 @@ const EditPage: NextPage = () => {
   const [isFlowerSelectOverlayOpen, setFlowerSelectOverlayOpen] = useState(
     false
   );
-  const { hierarchy, addObject } = useHierarchy();
+  const { hierarchy, addObject, updateObject } = useHierarchy();
 
   const onBottomNavigationClicked = (value: EditorBottomNavigationValue) => {
     if (value === "layer") {
@@ -75,6 +74,19 @@ const EditPage: NextPage = () => {
     input.click();
   };
 
+  const onMoveObject = (params: {
+    hierarchyId: string;
+    pointer: { x: number; y: number };
+  }) => {
+    const { hierarchyId, pointer } = params;
+
+    updateObject({
+      hierarchyId,
+      key: "pointer",
+      value: pointer,
+    });
+  };
+
   return (
     <>
       <div>
@@ -86,7 +98,7 @@ const EditPage: NextPage = () => {
             padding-top: 50px;
           `}
         >
-          <RendererWithNoSSR hierarchy={hierarchy} />
+          <RendererWithNoSSR hierarchy={hierarchy} onMove={onMoveObject} />
         </div>
         <EditorBottomNavigation onClick={onBottomNavigationClicked} />
       </div>

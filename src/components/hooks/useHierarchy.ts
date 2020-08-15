@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import useRemoteObjects from "./useRemoteObjects";
 
 export type ObjectType = "image";
@@ -10,6 +10,10 @@ export interface ObjectState {
   hierarchyId: HierarchyId;
   type: ObjectType;
   order: number;
+  pointer: {
+    x: number;
+    y: number;
+  };
 }
 
 type HierarchyId = string;
@@ -23,6 +27,10 @@ export type Hierarchy = {
   hierarchyId: HierarchyId;
   type: "image";
   url: string;
+  pointer: {
+    x: number;
+    y: number;
+  };
 }[];
 
 const useHierarchy = () => {
@@ -52,6 +60,7 @@ const useHierarchy = () => {
           type: object.type,
           // TODO type-safe
           url: flowers.find(({ id }) => id === object.objectId)?.url as string,
+          pointer: object.pointer,
         };
       }
 
@@ -60,6 +69,7 @@ const useHierarchy = () => {
         hierarchyId: object.hierarchyId,
         type: object.type,
         url: "dummy",
+        pointer: object.pointer,
       };
     });
   }, [hierarchyState]);
@@ -78,6 +88,10 @@ const useHierarchy = () => {
           hierarchyId,
           type: params.type,
           order: newMaxOrderNumber,
+          pointer: {
+            x: 0.5,
+            y: 0.5,
+          },
         },
       };
 
@@ -86,11 +100,24 @@ const useHierarchy = () => {
     [hierarchyState]
   );
 
+  const updateObject = useCallback(
+    (params: { hierarchyId: string; key: keyof Hierarchy[0]; value: any }) => {
+      setHierarchyState((prev) => ({
+        ...prev,
+        [params.hierarchyId]: {
+          ...prev[params.hierarchyId],
+          [params.key]: params.value,
+        },
+      }));
+    },
+    []
+  );
+
   const createHierarchyId = (objectId: ObjectId) => {
     return `${objectId}_${Date.now()}`;
   };
 
-  return { hierarchy, addObject };
+  return { hierarchy, addObject, updateObject };
 };
 
 export default useHierarchy;
