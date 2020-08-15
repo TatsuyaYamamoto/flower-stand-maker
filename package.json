@@ -17,6 +17,7 @@
     "*.{js,css,md}": "prettier --write"
   },
   "dependencies": {
+    "@emotion/core": "^10.0.34",
     "@inlet/react-pixi": "^5.0.3",
     "@material-ui/core": "^4.11.0",
     "@material-ui/icons": "^4.9.1",
