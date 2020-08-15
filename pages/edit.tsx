@@ -6,12 +6,14 @@ import EditorBottomNavigation, {
 } from "../src/components/organisms/EditorBottomNavigation";
 import EditorLayerDrawer from "../src/components/organisms/EditorLayerDrawer";
 import EditorFlowerSelectOverlay from "../src/components/organisms/EditorFlowerSelectOverlay";
+import useHierarchy from "../src/components/hooks/useHierarchy";
 
 const EditPage: NextPage = () => {
   const [isLayerDrawerOpen, setLayerDrawerOpen] = useState(false);
   const [isFlowerSelectOverlayOpen, setFlowerSelectOverlayOpen] = useState(
     false
   );
+  const { hierarchy, addObject } = useHierarchy();
 
   const onBottomNavigationClicked = (value: EditorBottomNavigationValue) => {
     if (value === "layer") {
@@ -33,9 +35,12 @@ const EditPage: NextPage = () => {
     setFlowerSelectOverlayOpen((value) => !value);
   };
 
-  const handleSelectItem = () => {
-    console.log("select!");
+  const handleSelectItem = (objectId: string) => {
     handleFlowerSelectOverlay();
+    addObject({
+      id: objectId,
+      type: "image",
+    });
   };
 
   const selectImageFile = () => {
@@ -70,7 +75,11 @@ const EditPage: NextPage = () => {
         handleClose={handleFlowerSelectOverlay}
         onSelectItem={handleSelectItem}
       />
-      <EditorLayerDrawer open={isLayerDrawerOpen} onClose={handleLayerDrawer} />
+      <EditorLayerDrawer
+        open={isLayerDrawerOpen}
+        onClose={handleLayerDrawer}
+        hierarchy={hierarchy}
+      />
     </>
   );
 };
