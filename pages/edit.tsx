@@ -1,13 +1,20 @@
 import React, { useState } from "react";
 import { NextPage } from "next";
+import dynamic from "next/dynamic";
 
 import EditorBottomNavigation, {
   EditorBottomNavigationValue,
 } from "@/components/organisms/EditorBottomNavigation";
 import EditorLayerDrawer from "@/components/organisms/EditorLayerDrawer";
 import EditorFlowerSelectOverlay from "@/components/organisms/EditorFlowerSelectOverlay";
+import Renderer from "@/components/organisms/Renderer";
 
 import useHierarchy from "@/components/hooks/useHierarchy";
+
+const RendererWithNoSSR = dynamic(
+  () => import("@/components/organisms/Renderer"),
+  { ssr: false }
+);
 
 const EditPage: NextPage = () => {
   const [isLayerDrawerOpen, setLayerDrawerOpen] = useState(false);
@@ -69,6 +76,7 @@ const EditPage: NextPage = () => {
   return (
     <>
       <div>
+        <RendererWithNoSSR hierarchy={hierarchy} />
         <EditorBottomNavigation onClick={onBottomNavigationClicked} />
       </div>
       <EditorFlowerSelectOverlay
