@@ -23,17 +23,12 @@ const Renderer: FC<RendererProps> = (props) => {
         box-shadow: 10px 10px 30px rgba(18, 47, 61, 0.5),
           -10px -10px 30px rgba(248, 253, 255, 0.9),
           inset 10px 10px 30px transparent, inset -10px -10px 30px transparent;
-
-        canvas {
-          transform: scale(0.5);
-          transform-origin: left top;
-        }
       `}
     >
       <Stage
         width={width}
         height={height}
-        options={{ transparent: true, resolution: 2 }}
+        options={{ transparent: true, autoDensity: true }}
       >
         {hierarchy
           .map((object) => {
