@@ -16,7 +16,8 @@ const EditorLayerDrawer: FC<EditorLayerDrawerProps> = (props) => {
       <ul>
         {hierarchy.map((object) => (
           <li>
-            <div>ObjectID: {object.id}</div>
+            <div>ObjectID: {object.objectId}</div>
+            <div>HierarchyId: {object.hierarchyId}</div>
             <img width={100} src={object.url} />
           </li>
         ))}

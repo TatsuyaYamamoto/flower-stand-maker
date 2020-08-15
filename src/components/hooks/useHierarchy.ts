@@ -3,18 +3,24 @@ import useRemoteObjects from "./useRemoteObjects";
 
 export type ObjectType = "image";
 
+type ObjectId = string;
+
 export interface ObjectState {
-  objectId: string;
+  objectId: ObjectId;
+  hierarchyId: HierarchyId;
   type: ObjectType;
   order: number;
 }
 
+type HierarchyId = string;
+
 export interface HierarchyState {
-  [objectId: string]: ObjectState;
+  [HierarchyId: string]: ObjectState;
 }
 
 export type Hierarchy = {
-  id: string;
+  objectId: ObjectId;
+  hierarchyId: HierarchyId;
   type: "image";
   url: string;
 }[];
@@ -24,9 +30,9 @@ const useHierarchy = () => {
   const [hierarchyState, setHierarchyState] = useState<HierarchyState>({});
 
   const hierarchy = useMemo<Hierarchy>(() => {
-    const objectIds = Object.keys(hierarchyState);
-    const randomOrderedHierarchy = objectIds.map((objectId) => {
-      return hierarchyState[objectId];
+    const hierarchyIds = Object.keys(hierarchyState);
+    const randomOrderedHierarchy = hierarchyIds.map((hierarchyId) => {
+      return hierarchyState[hierarchyId];
     });
     const orderedHierarchy = randomOrderedHierarchy.sort((a, b) => {
       if (a.order < b.order) {
@@ -41,7 +47,8 @@ const useHierarchy = () => {
     return orderedHierarchy.map((object) => {
       if (object.type === "image") {
         return {
-          id: object.objectId,
+          objectId: object.objectId,
+          hierarchyId: object.hierarchyId,
           type: object.type,
           // TODO type-safe
           url: flowers.find(({ id }) => id === object.objectId)?.url as string,
@@ -49,7 +56,8 @@ const useHierarchy = () => {
       }
 
       return {
-        id: object.objectId,
+        objectId: object.objectId,
+        hierarchyId: object.hierarchyId,
         type: object.type,
         url: "dummy",
       };
@@ -58,12 +66,16 @@ const useHierarchy = () => {
 
   const addObject = useCallback(
     (params: { id: string; type: ObjectType }) => {
+      const objectId = params.id;
+      const hierarchyId = createHierarchyId(objectId);
+
       const prevMaxOrderNumber = Object.keys(hierarchyState).length - 1;
       const newMaxOrderNumber = prevMaxOrderNumber + 1;
       const newHierarchyState: HierarchyState = {
         ...hierarchyState,
-        [params.id]: {
-          objectId: params.id,
+        [hierarchyId]: {
+          objectId,
+          hierarchyId,
           type: params.type,
           order: newMaxOrderNumber,
         },
@@ -73,6 +85,10 @@ const useHierarchy = () => {
     },
     [hierarchyState]
   );
+
+  const createHierarchyId = (objectId: ObjectId) => {
+    return `${objectId}_${Date.now()}`;
+  };
 
   return { hierarchy, addObject };
 };
