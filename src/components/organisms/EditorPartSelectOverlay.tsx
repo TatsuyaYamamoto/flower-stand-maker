@@ -14,7 +14,7 @@ import {
 } from "@material-ui/icons";
 import { makeStyles } from "@material-ui/styles";
 
-import useRemoteObjects from "../hooks/useRemoteObjects";
+import useParts from "../hooks/useParts";
 
 interface PartSelectListProps {
   parts: {
@@ -46,7 +46,7 @@ const useStyles = makeStyles({
   },
 });
 
-export interface EditorFlowerSelectOverlayProps {
+export interface EditorPartSelectOverlayProps {
   open: boolean;
   handleClose: () => void;
   onSelectItem: (partId: string) => void;
@@ -54,12 +54,12 @@ export interface EditorFlowerSelectOverlayProps {
 
 type TabValue = "flower" | "leaf" | "stand";
 
-const EditorFlowerSelectOverlay: FC<EditorFlowerSelectOverlayProps> = (
+const EditorPartSelectOverlay: FC<EditorPartSelectOverlayProps> = (
   props
 ) => {
   const { open, handleClose, onSelectItem } = props;
   const classes = useStyles();
-  const { flowers, leaves, stands } = useRemoteObjects();
+  const { flowers, leaves, stands } = useParts();
 
   const [tabValue, setTabValue] = useState<TabValue>("flower");
 
@@ -95,4 +95,4 @@ const EditorFlowerSelectOverlay: FC<EditorFlowerSelectOverlayProps> = (
   );
 };
 
-export default EditorFlowerSelectOverlay;
+export default EditorPartSelectOverlay;

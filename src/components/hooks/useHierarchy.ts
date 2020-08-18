@@ -1,5 +1,5 @@
 import { useCallback, useMemo, useState } from "react";
-import useRemoteObjects, { PartId } from "./useRemoteObjects";
+import useParts, { PartId } from "./useParts";
 
 export type ObjectId = string;
 
@@ -22,7 +22,7 @@ export type HierarchyState = {
 export type Hierarchy = (ObjectState & { url: string })[];
 
 const useHierarchy = () => {
-  const { all: allParts } = useRemoteObjects();
+  const { all: allParts } = useParts();
   const [hierarchyState, setHierarchyState] = useState<HierarchyState>({});
 
   const hierarchy = useMemo<Hierarchy>(() => {

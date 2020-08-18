@@ -7,7 +7,7 @@ export interface Part {
   url: string;
 }
 
-const useRemoteObjects = () => {
+const useParts = () => {
   const [flowers] = useState<{ id: string; url: string }[]>([
     { id: `flower_sunflower`, url: `/assets/images/flower_sunflower.png` },
     { id: `flower_rose_blue`, url: `/assets/images/flower_rose_blue.png` },
@@ -38,4 +38,4 @@ const useRemoteObjects = () => {
   };
 };
 
-export default useRemoteObjects;
+export default useParts;

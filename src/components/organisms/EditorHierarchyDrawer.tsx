@@ -2,13 +2,13 @@ import React, { FC } from "react";
 import { Drawer } from "@material-ui/core";
 import { Hierarchy } from "../hooks/useHierarchy";
 
-interface EditorLayerDrawerProps {
+interface EEditorHierarchyDrawerProps {
   open: boolean;
   onClose: () => void;
   hierarchy: Hierarchy;
 }
 
-const EditorLayerDrawer: FC<EditorLayerDrawerProps> = (props) => {
+const EditorHierarchyDrawer: FC<EEditorHierarchyDrawerProps> = (props) => {
   const { open, onClose, hierarchy } = props;
 
   return (
@@ -26,4 +26,4 @@ const EditorLayerDrawer: FC<EditorLayerDrawerProps> = (props) => {
   );
 };
 
-export default EditorLayerDrawer;
+export default EditorHierarchyDrawer;

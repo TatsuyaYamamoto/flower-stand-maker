@@ -7,8 +7,8 @@ import { jsx, css } from "@emotion/core";
 import EditorBottomNavigation, {
   EditorBottomNavigationValue,
 } from "@/components/organisms/EditorBottomNavigation";
-import EditorLayerDrawer from "@/components/organisms/EditorLayerDrawer";
-import EditorFlowerSelectOverlay from "@/components/organisms/EditorFlowerSelectOverlay";
+import EditorHierarchyDrawer from "@/components/organisms/EditorHierarchyDrawer";
+import EditorPartSelectOverlay from "@/components/organisms/EditorPartSelectOverlay";
 
 import useHierarchy from "@/components/hooks/useHierarchy";
 
@@ -101,12 +101,12 @@ const EditPage: NextPage = () => {
         </div>
         <EditorBottomNavigation onClick={onBottomNavigationClicked} />
       </div>
-      <EditorFlowerSelectOverlay
+      <EditorPartSelectOverlay
         open={isFlowerSelectOverlayOpen}
         handleClose={handleFlowerSelectOverlay}
         onSelectItem={handleSelectItem}
       />
-      <EditorLayerDrawer
+      <EditorHierarchyDrawer
         open={isLayerDrawerOpen}
         onClose={handleLayerDrawer}
         hierarchy={hierarchy}
