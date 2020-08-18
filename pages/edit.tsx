@@ -44,11 +44,10 @@ const EditPage: NextPage = () => {
     setFlowerSelectOverlayOpen((value) => !value);
   };
 
-  const handleSelectItem = (objectId: string) => {
+  const handleSelectItem = (partId: string) => {
     handleFlowerSelectOverlay();
     addObject({
-      id: objectId,
-      type: "image",
+      partId,
     });
   };
 
@@ -75,13 +74,13 @@ const EditPage: NextPage = () => {
   };
 
   const onMoveObject = (params: {
-    hierarchyId: string;
+    objectId: string;
     pointer: { x: number; y: number };
   }) => {
-    const { hierarchyId, pointer } = params;
+    const { objectId, pointer } = params;
 
     updateObject({
-      hierarchyId,
+      objectId,
       key: "pointer",
       value: pointer,
     });

@@ -8,62 +8,31 @@ import {
   Toolbar,
 } from "@material-ui/core";
 import {
-  Toys as BalloonIcon,
+  Eco as LeafIcon,
   LocalFlorist as FlowerIcon,
+  Nature as StandIcon,
 } from "@material-ui/icons";
 import { makeStyles } from "@material-ui/styles";
+
 import useRemoteObjects from "../hooks/useRemoteObjects";
 
-interface FlowerListProps {
-  flowers: {
+interface PartSelectListProps {
+  parts: {
     id: string;
     url: string;
   }[];
-  onSelect: (objectId: string) => void;
+  onSelect: (partId: string) => void;
 }
 
-const FlowerList: FC<FlowerListProps> = (props) => {
-  const { onSelect, flowers } = props;
+const PartSelectList: FC<PartSelectListProps> = (props) => {
+  const { onSelect, parts } = props;
   const onClick = (src: string) => () => {
     onSelect(src);
   };
   return (
     <div style={{ marginTop: 120 }}>
-      {flowers.map((item) => (
-        <img
-          key={item.id}
-          src={item.url}
-          width={100}
-          onClick={onClick(item.id)}
-        />
-      ))}
-    </div>
-  );
-};
-
-interface BalloonListProps {
-  balloons: {
-    id: string;
-    url: string;
-  }[];
-  onSelect: (objectId: string) => void;
-}
-
-const BalloonList: FC<BalloonListProps> = (props) => {
-  const { onSelect, balloons } = props;
-  const onClick = (src: string) => () => {
-    onSelect(src);
-  };
-
-  return (
-    <div style={{ marginTop: 120 }}>
-      {balloons.map((item) => (
-        <img
-          key={item.id}
-          src={item.url}
-          width={100}
-          onClick={onClick(item.id)}
-        />
+      {parts.map(({ id: partId, url }) => (
+        <img key={partId} src={url} width={100} onClick={onClick(partId)} />
       ))}
     </div>
   );
@@ -80,19 +49,21 @@ const useStyles = makeStyles({
 export interface EditorFlowerSelectOverlayProps {
   open: boolean;
   handleClose: () => void;
-  onSelectItem: (objectId: string) => void;
+  onSelectItem: (partId: string) => void;
 }
+
+type TabValue = "flower" | "leaf" | "stand";
 
 const EditorFlowerSelectOverlay: FC<EditorFlowerSelectOverlayProps> = (
   props
 ) => {
   const { open, handleClose, onSelectItem } = props;
   const classes = useStyles();
-  const { flowers, balloons } = useRemoteObjects();
+  const { flowers, leaves, stands } = useRemoteObjects();
 
-  const [tabValue, setTabValue] = useState<"flower" | "balloon">("flower");
+  const [tabValue, setTabValue] = useState<TabValue>("flower");
 
-  const onTabChange = (_: any, value: "flower" | "balloon") => {
+  const onTabChange = (_: any, value: TabValue) => {
     setTabValue(value);
   };
 
@@ -106,15 +77,19 @@ const EditorFlowerSelectOverlay: FC<EditorFlowerSelectOverlayProps> = (
         </Toolbar>
         <Tabs value={tabValue} centered onChange={onTabChange}>
           <Tab icon={<FlowerIcon />} value={"flower"} />
-          <Tab icon={<BalloonIcon />} value={"balloon"} />
+          <Tab icon={<LeafIcon />} value={"leaf"} />
+          <Tab icon={<StandIcon />} value={"stand"} />
         </Tabs>
       </AppBar>
 
       {tabValue === "flower" && (
-        <FlowerList flowers={flowers} onSelect={onSelectItem} />
+        <PartSelectList parts={flowers} onSelect={onSelectItem} />
       )}
-      {tabValue === "balloon" && (
-        <BalloonList balloons={balloons} onSelect={onSelectItem} />
+      {tabValue === "leaf" && (
+        <PartSelectList parts={leaves} onSelect={onSelectItem} />
+      )}
+      {tabValue === "stand" && (
+        <PartSelectList parts={stands} onSelect={onSelectItem} />
       )}
     </Backdrop>
   );

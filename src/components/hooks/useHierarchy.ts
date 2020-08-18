@@ -1,40 +1,28 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
-import useRemoteObjects from "./useRemoteObjects";
+import { useCallback, useMemo, useState } from "react";
+import useRemoteObjects, { PartId } from "./useRemoteObjects";
 
-export type ObjectType = "image";
+export type ObjectId = string;
 
-type ObjectId = string;
+export type Pointer = {
+  x: number;
+  y: number;
+};
 
 export interface ObjectState {
   objectId: ObjectId;
-  hierarchyId: HierarchyId;
-  type: ObjectType;
+  partId: PartId;
+  pointer: Pointer;
   order: number;
-  pointer: {
-    x: number;
-    y: number;
-  };
 }
 
-type HierarchyId = string;
+export type HierarchyState = {
+  [objectId in ObjectId]: ObjectState;
+};
 
-export interface HierarchyState {
-  [HierarchyId: string]: ObjectState;
-}
-
-export type Hierarchy = {
-  objectId: ObjectId;
-  hierarchyId: HierarchyId;
-  type: "image";
-  url: string;
-  pointer: {
-    x: number;
-    y: number;
-  };
-}[];
+export type Hierarchy = (ObjectState & { url: string })[];
 
 const useHierarchy = () => {
-  const { flowers, balloons } = useRemoteObjects();
+  const { all: allParts } = useRemoteObjects();
   const [hierarchyState, setHierarchyState] = useState<HierarchyState>({});
 
   const hierarchy = useMemo<Hierarchy>(() => {
@@ -53,61 +41,43 @@ const useHierarchy = () => {
     });
 
     return orderedHierarchy.map((object) => {
-      if (object.type === "image") {
-        return {
-          objectId: object.objectId,
-          hierarchyId: object.hierarchyId,
-          type: object.type,
-          // TODO type-safe
-          url: [...flowers, ...balloons].find(
-            ({ id }) => id === object.objectId
-          )?.url as string,
-          pointer: object.pointer,
-        };
-      }
-
       return {
-        objectId: object.objectId,
-        hierarchyId: object.hierarchyId,
-        type: object.type,
-        url: "dummy",
-        pointer: object.pointer,
+        ...object,
+        url: allParts.find((p) => p.id === object.partId)?.url ?? "",
       };
     });
-  }, [hierarchyState, flowers, balloons]);
+  }, [hierarchyState]);
 
   const addObject = useCallback(
-    (params: { id: string; type: ObjectType }) => {
-      const objectId = params.id;
-      const hierarchyId = createHierarchyId(objectId);
+    (params: { partId: string }) => {
+      const { partId } = params;
+      const objectId = createObjectId(partId);
 
       const prevMaxOrderNumber = Object.keys(hierarchyState).length - 1;
       const newMaxOrderNumber = prevMaxOrderNumber + 1;
-      const newHierarchyState: HierarchyState = {
-        ...hierarchyState,
-        [hierarchyId]: {
+
+      setHierarchyState((prev) => ({
+        ...prev,
+        [objectId]: {
           objectId,
-          hierarchyId,
-          type: params.type,
+          partId,
           order: newMaxOrderNumber,
           pointer: {
             x: 0.5,
             y: 0.5,
           },
         },
-      };
-
-      setHierarchyState(newHierarchyState);
+      }));
     },
     [hierarchyState]
   );
 
   const updateObject = useCallback(
-    (params: { hierarchyId: string; key: keyof Hierarchy[0]; value: any }) => {
+    (params: { objectId: string; key: keyof Hierarchy[0]; value: any }) => {
       setHierarchyState((prev) => ({
         ...prev,
-        [params.hierarchyId]: {
-          ...prev[params.hierarchyId],
+        [params.objectId]: {
+          ...prev[params.objectId],
           [params.key]: params.value,
         },
       }));
@@ -115,8 +85,8 @@ const useHierarchy = () => {
     []
   );
 
-  const createHierarchyId = (objectId: ObjectId) => {
-    return `${objectId}_${Date.now()}`;
+  const createObjectId = (partId: PartId) => {
+    return `${partId}_${Date.now()}`;
   };
 
   return { hierarchy, addObject, updateObject };
