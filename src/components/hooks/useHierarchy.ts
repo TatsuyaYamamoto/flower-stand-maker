@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import useParts, { PartId } from "./useParts";
 
 export type ObjectId = string;
@@ -23,12 +23,37 @@ export type Hierarchy = (ObjectState & { url: string })[];
 
 const useHierarchy = () => {
   const { all: allParts } = useParts();
+
+  /**
+   * @private
+   */
   const [hierarchyState, setHierarchyState] = useState<HierarchyState>({});
 
+  /**
+   * @private
+   */
+  const objectIds = useMemo(() => {
+    return Object.keys(hierarchyState);
+  }, [hierarchyState]);
+
+  /**
+   * @private
+   */
+  const maxOrderNumber = useMemo(() => {
+    return Object.keys(hierarchyState).length - 1;
+  }, [hierarchyState]);
+
+  /**
+   * @private
+   * @param partId
+   */
+  const createObjectId = (partId: PartId) => {
+    return `${partId}_${Date.now()}`;
+  };
+
   const hierarchy = useMemo<Hierarchy>(() => {
-    const hierarchyIds = Object.keys(hierarchyState);
-    const randomOrderedHierarchy = hierarchyIds.map((hierarchyId) => {
-      return hierarchyState[hierarchyId];
+    const randomOrderedHierarchy = objectIds.map((objectId) => {
+      return hierarchyState[objectId];
     });
     const orderedHierarchy = randomOrderedHierarchy.sort((a, b) => {
       if (a.order < b.order) {
@@ -48,48 +73,82 @@ const useHierarchy = () => {
     });
   }, [hierarchyState]);
 
-  const addObject = useCallback(
-    (params: { partId: string }) => {
-      const { partId } = params;
-      const objectId = createObjectId(partId);
+  const addObject = (params: { partId: string }) => {
+    const { partId } = params;
+    const objectId = createObjectId(partId);
 
-      const prevMaxOrderNumber = Object.keys(hierarchyState).length - 1;
-      const newMaxOrderNumber = prevMaxOrderNumber + 1;
+    const newMaxOrderNumber = maxOrderNumber + 1;
 
-      setHierarchyState((prev) => ({
-        ...prev,
-        [objectId]: {
-          objectId,
-          partId,
-          order: newMaxOrderNumber,
-          pointer: {
-            x: 0.5,
-            y: 0.5,
-          },
+    setHierarchyState((prev) => ({
+      ...prev,
+      [objectId]: {
+        objectId,
+        partId,
+        order: newMaxOrderNumber,
+        pointer: {
+          x: 0.5,
+          y: 0.5,
         },
-      }));
-    },
-    [hierarchyState]
-  );
+      },
+    }));
+  };
 
-  const updateObject = useCallback(
-    (params: { objectId: string; key: keyof Hierarchy[0]; value: any }) => {
-      setHierarchyState((prev) => ({
+  const updateObject = (params: {
+    objectId: string;
+    key: keyof Hierarchy[0];
+    value: any;
+  }) => {
+    setHierarchyState((prev) => {
+      return {
         ...prev,
         [params.objectId]: {
           ...prev[params.objectId],
           [params.key]: params.value,
         },
-      }));
-    },
-    []
-  );
-
-  const createObjectId = (partId: PartId) => {
-    return `${partId}_${Date.now()}`;
+      };
+    });
   };
 
-  return { hierarchy, addObject, updateObject };
+  const changeOrder = (params: { objectId: string; to: number | "front" }) => {
+    if (params.to === "front") {
+      setHierarchyState((prev) => {
+        const from = prev[params.objectId].order;
+        const newState: HierarchyState = {};
+
+        objectIds.forEach((objectId) => {
+          const prevObjectState = prev[objectId];
+
+          if (prevObjectState.objectId === params.objectId) {
+            newState[objectId] = {
+              ...prevObjectState,
+              order: maxOrderNumber,
+            };
+            return;
+          }
+
+          if (from < prevObjectState.order) {
+            newState[objectId] = {
+              ...prevObjectState,
+              order: prevObjectState.order - 1,
+            };
+            return;
+          }
+
+          newState[objectId] = {
+            ...prevObjectState,
+          };
+        });
+
+        return newState;
+      });
+
+      return;
+    }
+
+    throw new Error("not implemented.");
+  };
+
+  return { hierarchy, addObject, updateObject, changeOrder };
 };
 
 export default useHierarchy;

@@ -22,7 +22,7 @@ const EditPage: NextPage = () => {
   const [isFlowerSelectOverlayOpen, setFlowerSelectOverlayOpen] = useState(
     false
   );
-  const { hierarchy, addObject, updateObject } = useHierarchy();
+  const { hierarchy, addObject, updateObject, changeOrder } = useHierarchy();
 
   const onBottomNavigationClicked = (value: EditorBottomNavigationValue) => {
     if (value === "layer") {
@@ -73,17 +73,19 @@ const EditPage: NextPage = () => {
     input.click();
   };
 
-  const onMoveObject = (params: {
+  const moveObject = (params: {
     objectId: string;
     pointer: { x: number; y: number };
   }) => {
     const { objectId, pointer } = params;
 
-    updateObject({
-      objectId,
-      key: "pointer",
-      value: pointer,
-    });
+    updateObject({ objectId, key: "pointer", value: pointer });
+  };
+
+  const bringObject = (params: { objectId: string }) => {
+    const { objectId } = params;
+
+    changeOrder({ objectId, to: "front" });
   };
 
   return (
@@ -97,7 +99,11 @@ const EditPage: NextPage = () => {
             padding-top: 50px;
           `}
         >
-          <RendererWithNoSSR hierarchy={hierarchy} onMove={onMoveObject} />
+          <RendererWithNoSSR
+            hierarchy={hierarchy}
+            onMove={moveObject}
+            onBringToFront={bringObject}
+          />
         </div>
         <EditorBottomNavigation onClick={onBottomNavigationClicked} />
       </div>

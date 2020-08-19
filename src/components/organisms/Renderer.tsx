@@ -17,10 +17,11 @@ interface RendererProps {
     objectId: string;
     pointer: { x: number; y: number };
   }) => void;
+  onBringToFront: (params: { objectId: string }) => void;
 }
 
 const Renderer: FC<RendererProps> = (props) => {
-  const { hierarchy, onMove } = props;
+  const { hierarchy, onMove, onBringToFront } = props;
   const stageWidth = 300;
   const stageHeight = 400;
 
@@ -69,6 +70,7 @@ const Renderer: FC<RendererProps> = (props) => {
       selected: objectId,
       held: objectId,
     });
+    onBringToFront({ objectId });
   };
 
   const onPointerMove = (e: InteractionEvent) => {
