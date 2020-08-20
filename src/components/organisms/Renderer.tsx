@@ -1,15 +1,8 @@
 /** @jsx jsx */
 import React, { FC, useRef, useEffect, useState } from "react";
-import { Stage, Sprite, Graphics, Container } from "@inlet/react-pixi";
-import * as PIXI from "pixi.js";
-import { InteractionEvent } from "pixi.js";
 import { jsx, css } from "@emotion/core";
 
 import { Hierarchy } from "@/components/hooks/useHierarchy";
-
-// https://github.com/bfanger/pixi-inspector/issues/35#issuecomment-517811412
-// @ts-ignore
-window.__PIXI_INSPECTOR_GLOBAL_HOOK__?.register({ PIXI: PIXI });
 
 /**
  * todo: move util file
@@ -71,20 +64,22 @@ const Renderer: FC<RendererProps> = (props) => {
     pointerupOutsideObject(e);
   };
 
-  const pointerdownOnRootContainer = (e: PIXI.InteractionEvent) => {
+  const pointerdownOnRootContainer = (
+    e: React.PointerEvent<HTMLDivElement>
+  ) => {
     // prevent to fire event of document and window
-    e.data.originalEvent.stopPropagation();
+    e.stopPropagation();
 
     console.log(`${e.type} root container`);
-    pointerdownOutsideObject(e.data.originalEvent);
+    pointerdownOutsideObject(e.nativeEvent);
   };
 
-  const pointerupOnRootContainer = (e: PIXI.InteractionEvent) => {
+  const pointerupOnRootContainer = (e: React.PointerEvent<HTMLDivElement>) => {
     // prevent to fire event of document and window
-    e.data.originalEvent.stopPropagation();
+    e.stopPropagation();
 
     console.log(`${e.type} root container`);
-    pointerupOutsideObject(e.data.originalEvent);
+    pointerupOutsideObject(e.nativeEvent);
   };
 
   const pointerdownOutsideObject = (e: Event) => {
@@ -108,15 +103,15 @@ const Renderer: FC<RendererProps> = (props) => {
     }
   };
 
-  const pointerdownOnObject = (objectId: string) => (e: InteractionEvent) => {
-    // prevent to fire root container event
+  const pointerdownOnObject = (objectId: string) => (
+    e: React.PointerEvent<HTMLDivElement>
+  ) => {
+    // prevent to fire window and root container event
     e.stopPropagation();
-    // prevent to fire window event
-    e.data.originalEvent.stopPropagation();
 
     console.log(`${e.type} object ${objectId}`);
 
-    if (isMultiTapEvent(e.data.originalEvent)) {
+    if (isMultiTapEvent(e.nativeEvent)) {
       console.log("multiple!!!!");
       return;
     }
@@ -128,15 +123,15 @@ const Renderer: FC<RendererProps> = (props) => {
     onBringToFront({ objectId });
   };
 
-  const pointerupOnObject = (objectId: string) => (e: InteractionEvent) => {
-    // prevent to fire root container event
+  const pointerupOnObject = (objectId: string) => (
+    e: React.PointerEvent<HTMLDivElement>
+  ) => {
+    // prevent to fire window and root container event
     e.stopPropagation();
-    // prevent to fire window event
-    e.data.originalEvent.stopPropagation();
 
     console.log(`${e.type} object ${objectId}`);
 
-    if (isMultiTapEvent(e.data.originalEvent)) {
+    if (isMultiTapEvent(e.nativeEvent)) {
       console.log("multiple!!!!");
       return;
     }
@@ -147,12 +142,10 @@ const Renderer: FC<RendererProps> = (props) => {
     }));
   };
 
-  const onPointerMove = (e: InteractionEvent) => {
-    const { originalEvent } = e.data;
-
-    if (handlingObjectIds.selected && isMultiTapEvent(originalEvent)) {
-      const finger1st = originalEvent.touches[0];
-      const finger2nd = originalEvent.touches[1];
+  const onPointerMove = (e: Event) => {
+    if (handlingObjectIds.selected && isMultiTapEvent(e)) {
+      const finger1st = e.touches[0];
+      const finger2nd = e.touches[1];
       if (multiTapTimeline.current) {
         multiTapTimeline.current.push({
           distance: Math.sqrt(
@@ -199,14 +192,15 @@ const Renderer: FC<RendererProps> = (props) => {
       return;
     }
 
-    const { x, y } = e.data.global;
-    onMove({
-      objectId: handlingObjectIds.held,
-      pointer: {
-        x: x / stageWidth,
-        y: y / stageHeight,
-      },
-    });
+    // TODO
+    // const { x, y } = e;
+    // onMove({
+    //   objectId: handlingObjectIds.held,
+    //   pointer: {
+    //     x: x / stageWidth,
+    //     y: y / stageHeight,
+    //   },
+    // });
   };
 
   useEffect(() => {
@@ -242,63 +236,51 @@ const Renderer: FC<RendererProps> = (props) => {
           inset 10px 10px 30px transparent, inset -10px -10px 30px transparent;
       `}
     >
-      <Stage
-        width={stageWidth}
-        height={stageHeight}
-        options={{ transparent: true, autoDensity: true }}
+      <div
+        css={css`
+          width: 100%;
+          height: 100%;
+          position: relative;
+        `}
+        onPointerDown={pointerdownOnRootContainer}
+        onPointerUp={pointerupOnRootContainer}
+        // onPointerMove={onPointerMove}
       >
-        {/* PIXI.app.stage に 同じevent, hitAreaを設定しても発火しないため、Stageと同じサイズのPIXI.Containerを独自で設定する */}
-        <Container
-          interactive={true}
-          pointerdown={pointerdownOnRootContainer}
-          pointerup={pointerupOnRootContainer}
-          hitArea={new PIXI.Rectangle(0, 0, stageWidth, stageHeight)}
-          pointermove={onPointerMove}
-        >
-          {hierarchy.map(({ objectId, url, pointer, scale, angle }) => {
-            const x = stageWidth * pointer.x;
-            const y = stageHeight * pointer.y;
-            const width = 100;
-            const height = 100;
+        {hierarchy.map(({ objectId, url, pointer, scale, angle }) => {
+          const x = pointer.x * 100;
+          const y = pointer.y * 100;
+          const width = 100 * scale;
+          const height = 100 * scale;
 
-            return (
-              <React.Fragment key={objectId}>
-                {handlingObjectIds.selected === objectId && (
-                  <Graphics
-                    scale={scale}
-                    anchor={0.5}
-                    x={x}
-                    y={y}
-                    draw={(g) => {
-                      g.clear();
-                      g.lineStyle(1, 0x111111, 0.5);
-                      // g.beginFill(0xff700b, 1);
-                      g.drawRect(
-                        -1 * (width / 2),
-                        -1 * (height / 2),
-                        width,
-                        height
-                      );
-                      g.endFill();
-                    }}
-                  />
-                )}
-                <Sprite
-                  image={url}
-                  x={x}
-                  y={y}
-                  scale={scale}
-                  anchor={0.5}
-                  interactive={true}
-                  buttonMode={true}
-                  pointerdown={pointerdownOnObject(objectId)}
-                  pointerup={pointerupOnObject(objectId)}
-                />
-              </React.Fragment>
-            );
-          })}
-        </Container>
-      </Stage>
+          const style = css`
+            ${handlingObjectIds.selected === objectId &&
+            `
+              border: solid 1px black
+            `};
+            position: absolute;
+
+            top: ${x}%;
+            left: ${y}%;
+            transform: translate(-50%, -50%) rotate(${angle}deg);
+
+            width: ${width}px;
+            height: ${height}px;
+
+            cursor: pointer;
+          `;
+
+          return (
+            <React.Fragment key={objectId}>
+              <img
+                src={url}
+                css={style}
+                onPointerDown={pointerdownOnObject(objectId)}
+                onPointerUp={pointerupOnObject(objectId)}
+              />
+            </React.Fragment>
+          );
+        })}
+      </div>
     </div>
   );
 };
