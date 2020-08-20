@@ -12,7 +12,7 @@ export default function Home() {
 
       <main className={styles.main}>
         <h1 className={styles.title}>フラスタメーカー(開発中)</h1>
-
+        <div>{process.env.version}</div>
         <p className={styles.description}>
           ブラウザ上でエアフラスタつくろうぜ！
         </p>
