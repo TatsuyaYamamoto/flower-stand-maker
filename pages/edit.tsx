@@ -22,7 +22,13 @@ const EditPage: NextPage = () => {
   const [isFlowerSelectOverlayOpen, setFlowerSelectOverlayOpen] = useState(
     false
   );
-  const { hierarchy, addObject, updateObject, changeOrder } = useHierarchy();
+  const {
+    hierarchy,
+    addObject,
+    updateObject,
+    changeOrder,
+    changeScale,
+  } = useHierarchy();
 
   const onBottomNavigationClicked = (value: EditorBottomNavigationValue) => {
     if (value === "layer") {
@@ -82,6 +88,17 @@ const EditPage: NextPage = () => {
     updateObject({ objectId, key: "pointer", value: pointer });
   };
 
+  const transformObject = (params: {
+    objectId: string;
+    newScaleRatio: number;
+    angle: number;
+  }) => {
+    const { objectId, newScaleRatio, angle } = params;
+
+    changeScale({ objectId, rate: newScaleRatio });
+    updateObject({ objectId, key: "angle", value: angle });
+  };
+
   const bringObject = (params: { objectId: string }) => {
     const { objectId } = params;
 
@@ -103,6 +120,7 @@ const EditPage: NextPage = () => {
             hierarchy={hierarchy}
             onMove={moveObject}
             onBringToFront={bringObject}
+            onTransform={transformObject}
           />
         </div>
         <EditorBottomNavigation onClick={onBottomNavigationClicked} />

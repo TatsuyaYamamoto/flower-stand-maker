@@ -12,6 +12,8 @@ export interface ObjectState {
   objectId: ObjectId;
   partId: PartId;
   pointer: Pointer;
+  scale: number;
+  angle: number;
   order: number;
 }
 
@@ -85,6 +87,8 @@ const useHierarchy = () => {
         objectId,
         partId,
         order: newMaxOrderNumber,
+        scale: 1,
+        angle: 0,
         pointer: {
           x: 0.5,
           y: 0.5,
@@ -106,6 +110,17 @@ const useHierarchy = () => {
           [params.key]: params.value,
         },
       };
+    });
+  };
+
+  const changeScale = (params: { objectId: string; rate: number }) => {
+    const currentScale = hierarchyState[params.objectId].scale;
+    const newScale = currentScale * params.rate;
+
+    updateObject({
+      objectId: params.objectId,
+      key: "scale",
+      value: newScale,
     });
   };
 
@@ -148,7 +163,7 @@ const useHierarchy = () => {
     throw new Error("not implemented.");
   };
 
-  return { hierarchy, addObject, updateObject, changeOrder };
+  return { hierarchy, addObject, updateObject, changeOrder, changeScale };
 };
 
 export default useHierarchy;
