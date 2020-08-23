@@ -1,7 +1,7 @@
 /** @jsx jsx */
 import React, { FC, useEffect, useState } from "react";
 import { jsx, css } from "@emotion/core";
-import { animated, useSpring } from "react-spring";
+import { animated, useSpring, to } from "react-spring";
 import { useGesture } from "react-use-gesture";
 
 import { Hierarchy } from "@/components/hooks/useHierarchy";
@@ -18,7 +18,7 @@ interface GestureImageProps {
 const GestureImage: FC<GestureImageProps> = (props) => {
   const { url, selected, dragging, onSelect, onDragStart, onDragEnd } = props;
 
-  const [{ x, y, rotateZ }, setSpring] = useSpring(() => ({
+  const [{ x, y, rotateZ, zoom, scale }, setSpring] = useSpring(() => ({
     rotateZ: 0,
     scale: 1,
     zoom: 0,
@@ -55,7 +55,7 @@ const GestureImage: FC<GestureImageProps> = (props) => {
     <animated.img
       src={url}
       draggable={false}
-      style={{ x, y, rotateZ }}
+      style={{ x, y, rotateZ, scale: to([scale, zoom], (s, z) => s + z) }}
       {...bind()}
       css={css`
         position: absolute;
