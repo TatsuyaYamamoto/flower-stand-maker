@@ -54,6 +54,10 @@ const GestureImage: FC<GestureImageProps> = (props) => {
       onPinch: ({ args: [], offset: [d, a], event }) => {
         event?.stopPropagation();
 
+        if (!selected) {
+          return;
+        }
+
         setSpring({
           zoom: d / 200,
           rotateZ: a,
