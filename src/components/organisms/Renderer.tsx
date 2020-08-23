@@ -25,7 +25,7 @@ interface GestureImageProps {
 const GestureImage: FC<GestureImageProps> = (props) => {
   const { url, selected, dragging, onSelect, onDragStart, onDragEnd } = props;
 
-  const [{x,y,zoom,scale,rotateZ}, setSpring] = useSpring(() => ({
+  const [{ x, y, zoom, scale, rotateZ }, setSpring] = useSpring(() => ({
     rotateZ: 0,
     scale: 1,
     zoom: 0,
@@ -139,6 +139,7 @@ const Renderer: FC<RendererProps> = (props) => {
 
   const onSelected = (objectId: string) => () => {
     setSelectedObjectId(objectId);
+    onBringToFront({ objectId });
   };
 
   const onDragStart = (objectId: string) => () => {
