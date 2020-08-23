@@ -1,6 +1,10 @@
 {
   "hosting": {
     "public": "out",
+    "cleanUrls": true,
+    // next.jsのdefault behaviorに合わせる
+    // https://nextjs.org/docs/api-reference/next.config.js/trailing-slash
+    "trailingSlash": false,
     "ignore": [
       "firebase.json",
       "**/.*",
