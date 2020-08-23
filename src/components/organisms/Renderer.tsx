@@ -157,13 +157,20 @@ const Renderer: FC<RendererProps> = (props) => {
   useEffect(() => {
     const rootContainer = rootContainerRef.current;
     const type = "ontouchstart" in window ? "touchstart" : "mousedown";
+    const preventDefault = (e: Event) => e.preventDefault();
 
     rootContainer?.addEventListener(type, pointerdownOutsideObject);
     window.addEventListener(type, pointerdownOutsideObject);
 
+    document.addEventListener("gesturestart", preventDefault);
+    document.addEventListener("gesturechange", preventDefault);
+
     return () => {
       rootContainer?.removeEventListener(type, pointerdownOutsideObject);
       window.removeEventListener(type, pointerdownOutsideObject);
+
+      document.removeEventListener("gesturestart", preventDefault);
+      document.removeEventListener("gesturechange", preventDefault);
     };
   }, []);
 
