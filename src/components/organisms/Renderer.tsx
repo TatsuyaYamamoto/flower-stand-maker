@@ -1,15 +1,10 @@
 /** @jsx jsx */
-import React, { FC, useRef, useEffect, useState } from "react";
+import React, { FC, useEffect, useRef, useState } from "react";
 import { jsx, css } from "@emotion/core";
+import { animated, useSprings } from "react-spring";
+import { useGesture } from "react-use-gesture";
 
 import { Hierarchy } from "@/components/hooks/useHierarchy";
-
-/**
- * todo: move util file
- */
-const isMultiTapEvent = (e: Event): e is TouchEvent => {
-  return e instanceof TouchEvent && 2 <= e.touches.length;
-};
 
 interface RendererProps {
   hierarchy: Hierarchy;
@@ -30,22 +25,6 @@ const Renderer: FC<RendererProps> = (props) => {
   const stageWidth = 300;
   const stageHeight = 400;
 
-  const multiTapTimeline = useRef<
-    | {
-        distance: number;
-        angle: number;
-      }[]
-    | null
-  >(null);
-
-  const [handlingObjectIds, setHandlingObjectIds] = useState<{
-    selected: string | null;
-    held: string | null;
-  }>({
-    selected: null,
-    held: null,
-  });
-
   const touchstartOrMousedownOnWindow = (e: MouseEvent | TouchEvent) => {
     if (e instanceof MouseEvent && e.target instanceof HTMLCanvasElement) {
       // ignore.
@@ -59,11 +38,6 @@ const Renderer: FC<RendererProps> = (props) => {
     pointerdownOutsideObject(e);
   };
 
-  const touchendOrMouseupOnWindow = (e: MouseEvent | TouchEvent) => {
-    console.log(`${e.type} window`);
-    pointerupOutsideObject(e);
-  };
-
   const pointerdownOnRootContainer = (
     e: React.PointerEvent<HTMLDivElement>
   ) => {
@@ -74,153 +48,83 @@ const Renderer: FC<RendererProps> = (props) => {
     pointerdownOutsideObject(e.nativeEvent);
   };
 
-  const pointerupOnRootContainer = (e: React.PointerEvent<HTMLDivElement>) => {
-    // prevent to fire event of document and window
-    e.stopPropagation();
-
-    console.log(`${e.type} root container`);
-    pointerupOutsideObject(e.nativeEvent);
-  };
-
   const pointerdownOutsideObject = (e: Event) => {
-    if (isMultiTapEvent(e)) {
-      multiTapTimeline.current = [];
-      return;
-    }
-
-    if (handlingObjectIds.selected) {
-      setHandlingObjectIds((prev) => ({
-        ...prev,
-        selected: null,
-      }));
-    }
+    setSelectedObjectId(null);
   };
 
-  const pointerupOutsideObject = (e: Event) => {
-    if (isMultiTapEvent(e)) {
-      multiTapTimeline.current = null;
-      return;
-    }
-  };
+  const [selectedObjectId, setSelectedObjectId] = useState<string | null>(null);
+  const [draggingObjectId, setDraggingObjectId] = useState<string | null>(null);
 
-  const pointerdownOnObject = (objectId: string) => (
-    e: React.PointerEvent<HTMLDivElement>
-  ) => {
-    // prevent to fire window and root container event
-    e.stopPropagation();
+  const [springs, setSprings] = useSprings(hierarchy.length, () => {
+    return {
+      rotateZ: 0,
+      scale: 1,
+      zoom: 0,
+      x: 0,
+      y: 0,
+    };
+  });
 
-    console.log(`${e.type} object ${objectId}`);
+  const bindGestures = useGesture(
+    {
+      onDragStart: ({ args: [originalIndex, objectId], event }) => {
+        event?.stopPropagation();
 
-    if (isMultiTapEvent(e.nativeEvent)) {
-      console.log("multiple!!!!");
-      return;
-    }
+        console.log("onDragStart", originalIndex, objectId);
+        setDraggingObjectId(objectId);
+        setSelectedObjectId(objectId);
+      },
+      onDragEnd: ({ args: [originalIndex, objectId] }) => {
+        console.log("onDragEnd", originalIndex, objectId);
+        setDraggingObjectId(null);
+      },
+      onDrag: ({
+        args: [originalIndex, objectId],
+        movement: [x, y],
+        event,
+      }) => {
+        console.log(
+          `onDrag originalIndex: ${originalIndex} objectId : ${objectId} x: ${x}, y: ${y}`
+        );
+        setSprings((index) => {
+          console.log(
+            `setSprings index: ${index}, x: ${x}, x2: ${999}, y: ${y}, y2: ${999}`
+          );
 
-    setHandlingObjectIds({
-      selected: objectId,
-      held: objectId,
-    });
-    onBringToFront({ objectId });
-  };
-
-  const pointerupOnObject = (objectId: string) => (
-    e: React.PointerEvent<HTMLDivElement>
-  ) => {
-    // prevent to fire window and root container event
-    e.stopPropagation();
-
-    console.log(`${e.type} object ${objectId}`);
-
-    if (isMultiTapEvent(e.nativeEvent)) {
-      console.log("multiple!!!!");
-      return;
-    }
-
-    setHandlingObjectIds((prev) => ({
-      ...prev,
-      held: null,
-    }));
-  };
-
-  const onPointerMove = (e: Event) => {
-    if (handlingObjectIds.selected && isMultiTapEvent(e)) {
-      const finger1st = e.touches[0];
-      const finger2nd = e.touches[1];
-      if (multiTapTimeline.current) {
-        multiTapTimeline.current.push({
-          distance: Math.sqrt(
-            Math.pow(finger2nd.clientX - finger1st.clientX, 2) +
-              Math.pow(finger2nd.clientY - finger1st.clientY, 2)
-          ),
-          angle:
-            Math.atan2(
-              finger2nd.clientY - finger1st.clientY,
-              finger2nd.clientX - finger1st.clientX
-            ) *
-            (180 / Math.PI),
+          if (originalIndex === index) {
+            return { x, y };
+          } else {
+            return {};
+          }
         });
-
-        const length = multiTapTimeline.current.length;
-        if (2 <= length) {
-          const distanceDiff =
-            multiTapTimeline.current[length - 1].distance -
-            multiTapTimeline.current[length - 2].distance;
-          const newScaleRatio = 1 + distanceDiff * 0.01;
-
-          const angleDiff =
-            multiTapTimeline.current[length - 2].angle -
-            multiTapTimeline.current[length - 1].angle;
-
-          onTransform({
-            objectId: handlingObjectIds.selected,
-            newScaleRatio,
-            angle: angleDiff * 0.5,
-          });
-        }
-      }
-
-      return;
-    }
-
-    if (!e.target) {
-      // fired outside canvas
-      return;
-    }
-
-    if (!handlingObjectIds.held) {
-      // ignore because user don't hold any sprite.
-      return;
-    }
-
-    // TODO
-    // const { x, y } = e;
-    // onMove({
-    //   objectId: handlingObjectIds.held,
-    //   pointer: {
-    //     x: x / stageWidth,
-    //     y: y / stageHeight,
-    //   },
-    // });
-  };
+      },
+      onPinch: ({ args: [originalIndex], offset: [d, a] }) => {
+        setSprings((index) => {
+          if (originalIndex === index) {
+            return {
+              zoom: d / 200,
+              rotateZ: a,
+            };
+          } else {
+            return {};
+          }
+        });
+      },
+    },
+    { eventOptions: { passive: false } }
+  );
 
   useEffect(() => {
     if ("ontouchstart" in window) {
       window.addEventListener("touchstart", touchstartOrMousedownOnWindow);
-      window.addEventListener("touchend", touchendOrMouseupOnWindow);
-      window.addEventListener("touchcancel", touchendOrMouseupOnWindow);
     } else {
       window.addEventListener("mousedown", touchstartOrMousedownOnWindow);
-      window.addEventListener("mouseup", touchendOrMouseupOnWindow);
     }
-
     return () => {
       if ("ontouchstart" in window) {
         window.removeEventListener("touchstart", touchstartOrMousedownOnWindow);
-        window.removeEventListener("touchend", touchendOrMouseupOnWindow);
-        window.removeEventListener("touchcancel", touchendOrMouseupOnWindow);
       } else {
         window.removeEventListener("mousedown", touchstartOrMousedownOnWindow);
-        window.removeEventListener("mouseup", touchendOrMouseupOnWindow);
       }
     };
   }, []);
@@ -240,44 +144,37 @@ const Renderer: FC<RendererProps> = (props) => {
         css={css`
           width: 100%;
           height: 100%;
-          position: relative;
         `}
         onPointerDown={pointerdownOnRootContainer}
-        onPointerUp={pointerupOnRootContainer}
-        // onPointerMove={onPointerMove}
       >
-        {hierarchy.map(({ objectId, url, pointer, scale, angle }) => {
-          const x = pointer.x * 100;
-          const y = pointer.y * 100;
-          const width = 100 * scale;
-          const height = 100 * scale;
-
-          const style = css`
-            ${handlingObjectIds.selected === objectId &&
-            `
-              border: solid 1px black
-            `};
-            position: absolute;
-
-            top: ${x}%;
-            left: ${y}%;
-            transform: translate(-50%, -50%) rotate(${angle}deg);
-
-            width: ${width}px;
-            height: ${height}px;
-
-            cursor: pointer;
-          `;
+        {springs.map((spring, index) => {
+          const { objectId, url } = hierarchy[index];
+          const { x, y, scale, rotateZ } = spring;
 
           return (
-            <React.Fragment key={objectId}>
-              <img
-                src={url}
-                css={style}
-                onPointerDown={pointerdownOnObject(objectId)}
-                onPointerUp={pointerupOnObject(objectId)}
-              />
-            </React.Fragment>
+            <animated.img
+              key={objectId}
+              {...bindGestures(index, objectId)}
+              src={url}
+              draggable={false}
+              style={{ x, y, rotateZ }}
+              css={css`
+                position: absolute;
+                width: 30vw;
+                height: 30vw;
+                transition: box-shadow 0.5s, opacity 0.5s;
+                will-change: transform;
+                overflow: hidden;
+                touch-action: none;
+                box-sizing: content-box;
+
+                cursor: ${draggingObjectId === objectId ? "grabbing" : "grab"};
+                ${selectedObjectId === objectId &&
+                `
+                 border: solid 1px black;
+                `}
+              `}
+            />
           );
         })}
       </div>
