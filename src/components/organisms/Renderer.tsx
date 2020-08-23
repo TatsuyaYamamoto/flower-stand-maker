@@ -1,10 +1,81 @@
 /** @jsx jsx */
-import React, { FC, useEffect, useRef, useState } from "react";
+import React, { FC, useEffect, useState } from "react";
 import { jsx, css } from "@emotion/core";
-import { animated, useSprings } from "react-spring";
+import { animated, useSpring } from "react-spring";
 import { useGesture } from "react-use-gesture";
 
 import { Hierarchy } from "@/components/hooks/useHierarchy";
+
+interface GestureImageProps {
+  url: string;
+  selected: boolean;
+  dragging: boolean;
+  onSelect: () => void;
+  onDragStart: () => void;
+  onDragEnd: () => void;
+}
+
+const GestureImage: FC<GestureImageProps> = (props) => {
+  const { url, selected, dragging, onSelect, onDragStart, onDragEnd } = props;
+
+  const [{ x, y, rotateZ }, setSpring] = useSpring(() => ({
+    rotateZ: 0,
+    scale: 1,
+    zoom: 0,
+    x: 0,
+    y: 0,
+  }));
+
+  const bind = useGesture(
+    {
+      onDragStart: ({ event }) => {
+        event?.stopPropagation();
+
+        onDragStart();
+        onSelect();
+      },
+      onDragEnd: ({}) => {
+        onDragEnd();
+      },
+      onDrag: ({ offset: [x, y] }) => {
+        console.log(`onDrag x: ${x}, y: ${y}`);
+        setSpring({ x, y });
+      },
+      onPinch: ({ args: [], offset: [d, a] }) => {
+        setSpring({
+          zoom: d / 200,
+          rotateZ: a,
+        });
+      },
+    },
+    { eventOptions: { passive: false } }
+  );
+
+  return (
+    <animated.img
+      src={url}
+      draggable={false}
+      style={{ x, y, rotateZ }}
+      {...bind()}
+      css={css`
+        position: absolute;
+        width: 30vw;
+        height: 30vw;
+        transition: box-shadow 0.5s, opacity 0.5s;
+        will-change: transform;
+        overflow: hidden;
+        touch-action: none;
+        box-sizing: content-box;
+
+        cursor: ${dragging ? "grabbing" : "grab"};
+        ${selected &&
+        `
+          border: solid 1px black;
+        `}
+      `}
+    />
+  );
+};
 
 interface RendererProps {
   hierarchy: Hierarchy;
@@ -55,64 +126,17 @@ const Renderer: FC<RendererProps> = (props) => {
   const [selectedObjectId, setSelectedObjectId] = useState<string | null>(null);
   const [draggingObjectId, setDraggingObjectId] = useState<string | null>(null);
 
-  const [springs, setSprings] = useSprings(hierarchy.length, () => {
-    return {
-      rotateZ: 0,
-      scale: 1,
-      zoom: 0,
-      x: 0,
-      y: 0,
-    };
-  });
+  const onSelected = (objectId: string) => () => {
+    setSelectedObjectId(objectId);
+  };
 
-  const bindGestures = useGesture(
-    {
-      onDragStart: ({ args: [originalIndex, objectId], event }) => {
-        event?.stopPropagation();
+  const onDragStart = (objectId: string) => () => {
+    setDraggingObjectId(objectId);
+  };
 
-        console.log("onDragStart", originalIndex, objectId);
-        setDraggingObjectId(objectId);
-        setSelectedObjectId(objectId);
-      },
-      onDragEnd: ({ args: [originalIndex, objectId] }) => {
-        console.log("onDragEnd", originalIndex, objectId);
-        setDraggingObjectId(null);
-      },
-      onDrag: ({
-        args: [originalIndex, objectId],
-        movement: [x, y],
-        event,
-      }) => {
-        console.log(
-          `onDrag originalIndex: ${originalIndex} objectId : ${objectId} x: ${x}, y: ${y}`
-        );
-        setSprings((index) => {
-          console.log(
-            `setSprings index: ${index}, x: ${x}, x2: ${999}, y: ${y}, y2: ${999}`
-          );
-
-          if (originalIndex === index) {
-            return { x, y };
-          } else {
-            return {};
-          }
-        });
-      },
-      onPinch: ({ args: [originalIndex], offset: [d, a] }) => {
-        setSprings((index) => {
-          if (originalIndex === index) {
-            return {
-              zoom: d / 200,
-              rotateZ: a,
-            };
-          } else {
-            return {};
-          }
-        });
-      },
-    },
-    { eventOptions: { passive: false } }
-  );
+  const onDragEnd = (objectId: string) => () => {
+    setDraggingObjectId(null);
+  };
 
   useEffect(() => {
     if ("ontouchstart" in window) {
@@ -147,33 +171,16 @@ const Renderer: FC<RendererProps> = (props) => {
         `}
         onPointerDown={pointerdownOnRootContainer}
       >
-        {springs.map((spring, index) => {
-          const { objectId, url } = hierarchy[index];
-          const { x, y, scale, rotateZ } = spring;
-
+        {hierarchy.map(({ objectId, url }) => {
           return (
-            <animated.img
+            <GestureImage
               key={objectId}
-              {...bindGestures(index, objectId)}
-              src={url}
-              draggable={false}
-              style={{ x, y, rotateZ }}
-              css={css`
-                position: absolute;
-                width: 30vw;
-                height: 30vw;
-                transition: box-shadow 0.5s, opacity 0.5s;
-                will-change: transform;
-                overflow: hidden;
-                touch-action: none;
-                box-sizing: content-box;
-
-                cursor: ${draggingObjectId === objectId ? "grabbing" : "grab"};
-                ${selectedObjectId === objectId &&
-                `
-                 border: solid 1px black;
-                `}
-              `}
+              url={url}
+              selected={selectedObjectId === objectId}
+              dragging={draggingObjectId === objectId}
+              onSelect={onSelected(objectId)}
+              onDragStart={onDragStart(objectId)}
+              onDragEnd={onDragEnd(objectId)}
             />
           );
         })}
