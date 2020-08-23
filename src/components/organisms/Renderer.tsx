@@ -1,10 +1,17 @@
 /** @jsx jsx */
-import React, { FC, useEffect, useState } from "react";
+import React, { FC, useEffect, useRef, useState } from "react";
 import { jsx, css } from "@emotion/core";
 import { animated, useSpring, to } from "react-spring";
 import { useGesture } from "react-use-gesture";
 
 import { Hierarchy } from "@/components/hooks/useHierarchy";
+
+/**
+ * todo: move util file
+ */
+const isMultiTapEvent = (e: Event): e is TouchEvent => {
+  return e instanceof TouchEvent && 2 <= e.touches.length;
+};
 
 interface GestureImageProps {
   url: string;
@@ -18,7 +25,7 @@ interface GestureImageProps {
 const GestureImage: FC<GestureImageProps> = (props) => {
   const { url, selected, dragging, onSelect, onDragStart, onDragEnd } = props;
 
-  const [{ x, y, rotateZ, zoom, scale }, setSpring] = useSpring(() => ({
+  const [{x,y,zoom,scale,rotateZ}, setSpring] = useSpring(() => ({
     rotateZ: 0,
     scale: 1,
     zoom: 0,
@@ -34,14 +41,19 @@ const GestureImage: FC<GestureImageProps> = (props) => {
         onDragStart();
         onSelect();
       },
-      onDragEnd: ({}) => {
+      onDragEnd: ({ event }) => {
+        event?.stopPropagation();
+
         onDragEnd();
       },
-      onDrag: ({ offset: [x, y] }) => {
-        console.log(`onDrag x: ${x}, y: ${y}`);
+      onDrag: ({ offset: [x, y], event }) => {
+        event?.stopPropagation();
+
         setSpring({ x, y });
       },
-      onPinch: ({ args: [], offset: [d, a] }) => {
+      onPinch: ({ args: [], offset: [d, a], event }) => {
+        event?.stopPropagation();
+
         setSpring({
           zoom: d / 200,
           rotateZ: a,
@@ -96,30 +108,29 @@ const Renderer: FC<RendererProps> = (props) => {
   const stageWidth = 300;
   const stageHeight = 400;
 
-  const touchstartOrMousedownOnWindow = (e: MouseEvent | TouchEvent) => {
-    if (e instanceof MouseEvent && e.target instanceof HTMLCanvasElement) {
-      // ignore.
-      // fired target element is canvas and this target has pointer event.
-      // window is listening to touchstart or mousedown event to get TouchEvent.
-      // pointerdown of canvas can NOT stop propagation to window.
+  const rootContainerRef = useRef<HTMLDivElement>(null);
+
+  const pointerdownOutsideObject = (e: Event) => {
+    if (isMultiTapEvent(e)) {
       return;
     }
 
-    console.log(`${e.type} window`);
-    pointerdownOutsideObject(e);
-  };
+    /**
+     * 配下の img要素をクリックした場合、img要素のイベントより、この要素のイベントが先にトリガーされるため、
+     * `e.stopPropagation();` ではなく、return でこのイベントハンドラーを終了させる。
+     * react-use-gesture の実装の問題？
+     */
+    // @ts-ignore
+    if (e.target.tagName === "IMG") {
+      return;
+    }
 
-  const pointerdownOnRootContainer = (
-    e: React.PointerEvent<HTMLDivElement>
-  ) => {
     // prevent to fire event of document and window
     e.stopPropagation();
 
-    console.log(`${e.type} root container`);
-    pointerdownOutsideObject(e.nativeEvent);
-  };
+    // @ts-ignore
+    console.log(`${e.type} ${e.target.tagName}`);
 
-  const pointerdownOutsideObject = (e: Event) => {
     setSelectedObjectId(null);
   };
 
@@ -139,17 +150,15 @@ const Renderer: FC<RendererProps> = (props) => {
   };
 
   useEffect(() => {
-    if ("ontouchstart" in window) {
-      window.addEventListener("touchstart", touchstartOrMousedownOnWindow);
-    } else {
-      window.addEventListener("mousedown", touchstartOrMousedownOnWindow);
-    }
+    const rootContainer = rootContainerRef.current;
+    const type = "ontouchstart" in window ? "touchstart" : "mousedown";
+
+    rootContainer?.addEventListener(type, pointerdownOutsideObject);
+    window.addEventListener(type, pointerdownOutsideObject);
+
     return () => {
-      if ("ontouchstart" in window) {
-        window.removeEventListener("touchstart", touchstartOrMousedownOnWindow);
-      } else {
-        window.removeEventListener("mousedown", touchstartOrMousedownOnWindow);
-      }
+      rootContainer?.removeEventListener(type, pointerdownOutsideObject);
+      window.removeEventListener(type, pointerdownOutsideObject);
     };
   }, []);
 
@@ -165,11 +174,11 @@ const Renderer: FC<RendererProps> = (props) => {
       `}
     >
       <div
+        ref={rootContainerRef}
         css={css`
           width: 100%;
           height: 100%;
         `}
-        onPointerDown={pointerdownOnRootContainer}
       >
         {hierarchy.map(({ objectId, url }) => {
           return (
