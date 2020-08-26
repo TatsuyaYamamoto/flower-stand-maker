@@ -132,8 +132,9 @@ const EditPage: NextPage = () => {
       />
       <EditorHierarchyDrawer
         open={isLayerDrawerOpen}
-        onClose={handleLayerDrawer}
         hierarchy={hierarchy}
+        onClose={handleLayerDrawer}
+        onChangeOrder={changeOrder}
       />
     </>
   );

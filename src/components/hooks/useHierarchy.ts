@@ -125,42 +125,60 @@ const useHierarchy = () => {
   };
 
   const changeOrder = (params: { objectId: string; to: number | "front" }) => {
-    if (params.to === "front") {
-      setHierarchyState((prev) => {
-        const from = prev[params.objectId].order;
-        const newState: HierarchyState = {};
+    const newIndex = params.to === "front" ? maxOrderNumber : params.to;
 
-        objectIds.forEach((objectId) => {
-          const prevObjectState = prev[objectId];
+    setHierarchyState((prev) => {
+      const prevIndex = prev[params.objectId].order;
+      console.log(
+        `change order ${params.objectId} prev:${prevIndex}, new ${newIndex}`
+      );
 
-          if (prevObjectState.objectId === params.objectId) {
-            newState[objectId] = {
-              ...prevObjectState,
-              order: maxOrderNumber,
-            };
-            return;
-          }
+      if (prevIndex === newIndex) {
+        return prev;
+      }
 
-          if (from < prevObjectState.order) {
-            newState[objectId] = {
-              ...prevObjectState,
-              order: prevObjectState.order - 1,
-            };
-            return;
-          }
+      const newState: HierarchyState = {};
 
+      objectIds.forEach((objectId) => {
+        const prevObjectState = prev[objectId];
+
+        if (prevObjectState.objectId === params.objectId) {
           newState[objectId] = {
             ...prevObjectState,
+            order: newIndex,
           };
-        });
+          return;
+        }
 
-        return newState;
+        if (
+          prevIndex <= prevObjectState.order &&
+          prevObjectState.order <= newIndex
+        ) {
+          newState[objectId] = {
+            ...prevObjectState,
+            order: prevObjectState.order - 1,
+          };
+          return;
+        }
+
+        if (
+          newIndex <= prevObjectState.order &&
+          prevObjectState.order <= prevIndex
+        ) {
+          newState[objectId] = {
+            ...prevObjectState,
+            order: prevObjectState.order + 1,
+          };
+          return;
+        }
+
+        newState[objectId] = {
+          ...prevObjectState,
+        };
       });
 
-      return;
-    }
-
-    throw new Error("not implemented.");
+      return newState;
+    });
   };
 
   return { hierarchy, addObject, updateObject, changeOrder, changeScale };
