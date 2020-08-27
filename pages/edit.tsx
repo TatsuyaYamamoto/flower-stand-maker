@@ -7,13 +7,17 @@ import { jsx, css } from "@emotion/core";
 import EditorBottomNavigation, {
   EditorBottomNavigationValue,
 } from "@/components/organisms/EditorBottomNavigation";
-import EditorHierarchyDrawer from "@/components/organisms/EditorHierarchyDrawer";
 import EditorPartSelectOverlay from "@/components/organisms/EditorPartSelectOverlay";
 
 import useHierarchy from "@/components/hooks/useHierarchy";
 
 const RendererWithNoSSR = dynamic(
   () => import("@/components/organisms/Renderer"),
+  { ssr: false }
+);
+
+const EditorHierarchyDrawerWithNoSsr = dynamic(
+  () => import("@/components/organisms/EditorHierarchyDrawer"),
   { ssr: false }
 );
 
@@ -130,7 +134,7 @@ const EditPage: NextPage = () => {
         handleClose={handleFlowerSelectOverlay}
         onSelectItem={handleSelectItem}
       />
-      <EditorHierarchyDrawer
+      <EditorHierarchyDrawerWithNoSsr
         open={isLayerDrawerOpen}
         hierarchy={hierarchy}
         onClose={handleLayerDrawer}

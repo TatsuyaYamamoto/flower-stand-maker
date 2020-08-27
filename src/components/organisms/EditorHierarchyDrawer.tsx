@@ -1,12 +1,16 @@
 /** @jsx jsx */
-import React, { FC } from "react";
+import React, { FC, useState } from "react";
 import { jsx, css } from "@emotion/core";
 import { DndProvider, useDrag, useDrop } from "react-dnd";
 import { HTML5Backend } from "react-dnd-html5-backend";
+import { TouchBackend } from "react-dnd-touch-backend";
 
 import { Drawer } from "@material-ui/core";
 
 import { Hierarchy } from "../hooks/useHierarchy";
+
+// https://stackoverflow.com/questions/4817029/whats-the-best-way-to-detect-a-touch-screen-device-using-javascript
+const isTouchDevice = "ontouchstart" in window;
 
 export interface HierarchyListItemProp {
   objectId: string;
@@ -40,7 +44,7 @@ const HierarchyListItem: FC<HierarchyListItemProp> = (props) => {
       css={css`
         list-style: none;
         border: solid 1px black;
-        opacity: ${isDragging ? 0 : 1};
+        opacity: ${!isDragging ? 1 : isTouchDevice ? 0.5 : 1};
       `}
     >
       <img width={100} src={url} css={css``} />
@@ -57,6 +61,12 @@ interface EEditorHierarchyDrawerProps {
 
 const EditorHierarchyDrawer: FC<EEditorHierarchyDrawerProps> = (props) => {
   const { open, hierarchy, onClose, onChangeOrder } = props;
+  const [reactDndBackend] = useState(() => {
+    if (isTouchDevice) {
+      return TouchBackend;
+    }
+    return HTML5Backend;
+  });
 
   const onMove = (index: number) => (objectId: string) => {
     onChangeOrder({
@@ -67,7 +77,7 @@ const EditorHierarchyDrawer: FC<EEditorHierarchyDrawerProps> = (props) => {
 
   return (
     <Drawer anchor="right" open={open} onClose={onClose}>
-      <DndProvider backend={HTML5Backend}>
+      <DndProvider backend={reactDndBackend}>
         <ul
           css={css`
             list-style: none;
