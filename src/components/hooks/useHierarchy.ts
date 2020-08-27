@@ -99,6 +99,31 @@ const useHierarchy = () => {
     }));
   };
 
+  const removeObject = (params: { objectId: string }) => {
+    const removeObjectId = params.objectId;
+
+    setHierarchyState((prev) => {
+      const removeObjectOrder = prev[removeObjectId].order;
+      const newState: HierarchyState = {};
+
+      objectIds.forEach((objectId) => {
+        const prevObjectState = prev[objectId];
+
+        if (objectId !== removeObjectId) {
+          newState[objectId] = {
+            ...prevObjectState,
+            order:
+              removeObjectOrder < prevObjectState.order
+                ? prevObjectState.order - 1
+                : prevObjectState.order,
+          };
+        }
+      });
+
+      return newState;
+    });
+  };
+
   const updateObject = (params: {
     objectId: string;
     key: keyof Hierarchy[0];
@@ -183,7 +208,14 @@ const useHierarchy = () => {
     });
   };
 
-  return { hierarchy, addObject, updateObject, changeOrder, changeScale };
+  return {
+    hierarchy,
+    addObject,
+    removeObject,
+    updateObject,
+    changeOrder,
+    changeScale,
+  };
 };
 
 export default useHierarchy;

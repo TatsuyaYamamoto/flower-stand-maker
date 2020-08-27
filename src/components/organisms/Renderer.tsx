@@ -84,9 +84,6 @@ const GestureImage: FC<GestureImageProps> = (props) => {
       {...bind()}
       css={css`
         position: absolute;
-        width: 30vw;
-        height: 30vw;
-        transition: box-shadow 0.5s, opacity 0.5s;
         will-change: transform;
         overflow: hidden;
         touch-action: none;

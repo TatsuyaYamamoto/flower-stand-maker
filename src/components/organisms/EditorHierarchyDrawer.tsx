@@ -23,11 +23,12 @@ export interface HierarchyListItemProp {
   url: string;
   visible: boolean;
   handleVisible: (visible: boolean) => void;
+  onRemove: () => void;
   onHover: (objectId: string) => void;
 }
 
 const HierarchyListItem: FC<HierarchyListItemProp> = (props) => {
-  const { objectId, url, visible, onHover, handleVisible } = props;
+  const { objectId, url, visible, onHover, handleVisible, onRemove } = props;
 
   const [{ isDragging }, drag] = useDrag({
     item: { type: "item", objectId },
@@ -76,7 +77,7 @@ const HierarchyListItem: FC<HierarchyListItemProp> = (props) => {
         <IconButton onClick={onClickVisibleButton}>
           {visible ? <VisibilityIcon /> : <VisibilityOffIcon />}
         </IconButton>
-        <IconButton>
+        <IconButton onClick={onRemove}>
           <DeleteIcon />
         </IconButton>
       </div>
@@ -90,10 +91,18 @@ interface EEditorHierarchyDrawerProps {
   onClose: () => void;
   onChangeOrder: (params: { objectId: string; to: number | "front" }) => void;
   onChangeVisible: (params: { objectId: string; visible: boolean }) => void;
+  onRemoveObject: (params: { objectId: string }) => void;
 }
 
 const EditorHierarchyDrawer: FC<EEditorHierarchyDrawerProps> = (props) => {
-  const { open, hierarchy, onClose, onChangeOrder, onChangeVisible } = props;
+  const {
+    open,
+    hierarchy,
+    onClose,
+    onChangeOrder,
+    onChangeVisible,
+    onRemoveObject,
+  } = props;
   const [reactDndBackend] = useState(() => {
     if (isTouchDevice) {
       return TouchBackend;
@@ -115,6 +124,10 @@ const EditorHierarchyDrawer: FC<EEditorHierarchyDrawerProps> = (props) => {
     });
   };
 
+  const onRemove = (objectId: string) => () => {
+    onRemoveObject({ objectId });
+  };
+
   return (
     <Drawer anchor="right" open={open} onClose={onClose}>
       <DndProvider backend={reactDndBackend}>
@@ -133,6 +146,7 @@ const EditorHierarchyDrawer: FC<EEditorHierarchyDrawerProps> = (props) => {
                 visible={visible}
                 handleVisible={handleVisible(objectId)}
                 onHover={onMove(index)}
+                onRemove={onRemove(objectId)}
               />
             </li>
           ))}

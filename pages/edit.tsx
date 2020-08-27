@@ -29,6 +29,7 @@ const EditPage: NextPage = () => {
   const {
     hierarchy,
     addObject,
+    removeObject,
     updateObject,
     changeOrder,
     changeScale,
@@ -146,6 +147,7 @@ const EditPage: NextPage = () => {
         onClose={handleLayerDrawer}
         onChangeOrder={changeOrder}
         onChangeVisible={changeVisible}
+        onRemoveObject={removeObject}
       />
     </>
   );
