@@ -15,6 +15,7 @@ const isMultiTapEvent = (e: Event): e is TouchEvent => {
 
 interface GestureImageProps {
   url: string;
+  visible: boolean;
   selected: boolean;
   dragging: boolean;
   onSelect: () => void;
@@ -23,7 +24,15 @@ interface GestureImageProps {
 }
 
 const GestureImage: FC<GestureImageProps> = (props) => {
-  const { url, selected, dragging, onSelect, onDragStart, onDragEnd } = props;
+  const {
+    url,
+    visible,
+    selected,
+    dragging,
+    onSelect,
+    onDragStart,
+    onDragEnd,
+  } = props;
 
   const [{ x, y, zoom, scale, rotateZ }, setSpring] = useSpring(() => ({
     rotateZ: 0,
@@ -83,6 +92,7 @@ const GestureImage: FC<GestureImageProps> = (props) => {
         touch-action: none;
         box-sizing: content-box;
 
+        opacity: ${visible ? 1 : 0};
         cursor: ${dragging ? "grabbing" : "grab"};
         ${selected &&
         `
@@ -192,11 +202,12 @@ const Renderer: FC<RendererProps> = (props) => {
           height: 100%;
         `}
       >
-        {hierarchy.map(({ objectId, url }) => {
+        {hierarchy.map(({ objectId, url, visible }) => {
           return (
             <GestureImage
               key={objectId}
               url={url}
+              visible={visible}
               selected={selectedObjectId === objectId}
               dragging={draggingObjectId === objectId}
               onSelect={onSelected(objectId)}

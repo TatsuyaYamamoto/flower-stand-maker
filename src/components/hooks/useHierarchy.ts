@@ -15,6 +15,7 @@ export interface ObjectState {
   scale: number;
   angle: number;
   order: number;
+  visible: boolean;
 }
 
 export type HierarchyState = {
@@ -87,6 +88,7 @@ const useHierarchy = () => {
         objectId,
         partId,
         order: newMaxOrderNumber,
+        visible: true,
         scale: 1,
         angle: 0,
         pointer: {

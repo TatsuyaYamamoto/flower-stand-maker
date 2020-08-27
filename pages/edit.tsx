@@ -92,6 +92,12 @@ const EditPage: NextPage = () => {
     updateObject({ objectId, key: "pointer", value: pointer });
   };
 
+  const changeVisible = (params: { objectId: string; visible: boolean }) => {
+    const { objectId, visible } = params;
+
+    updateObject({ objectId, key: "visible", value: visible });
+  };
+
   const transformObject = (params: {
     objectId: string;
     newScaleRatio: number;
@@ -139,6 +145,7 @@ const EditPage: NextPage = () => {
         hierarchy={hierarchy}
         onClose={handleLayerDrawer}
         onChangeOrder={changeOrder}
+        onChangeVisible={changeVisible}
       />
     </>
   );

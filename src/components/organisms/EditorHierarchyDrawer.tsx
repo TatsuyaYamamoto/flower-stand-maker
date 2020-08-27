@@ -5,7 +5,12 @@ import { DndProvider, useDrag, useDrop } from "react-dnd";
 import { HTML5Backend } from "react-dnd-html5-backend";
 import { TouchBackend } from "react-dnd-touch-backend";
 
-import { Drawer } from "@material-ui/core";
+import {
+  VisibilityOutlined as VisibilityIcon,
+  VisibilityOffOutlined as VisibilityOffIcon,
+  DeleteOutline as DeleteIcon,
+} from "@material-ui/icons";
+import { Drawer, IconButton } from "@material-ui/core";
 
 import { Hierarchy } from "../hooks/useHierarchy";
 
@@ -16,11 +21,13 @@ export interface HierarchyListItemProp {
   objectId: string;
   index: number;
   url: string;
+  visible: boolean;
+  handleVisible: (visible: boolean) => void;
   onHover: (objectId: string) => void;
 }
 
 const HierarchyListItem: FC<HierarchyListItemProp> = (props) => {
-  const { objectId, url, onHover } = props;
+  const { objectId, url, visible, onHover, handleVisible } = props;
 
   const [{ isDragging }, drag] = useDrag({
     item: { type: "item", objectId },
@@ -38,16 +45,41 @@ const HierarchyListItem: FC<HierarchyListItemProp> = (props) => {
     },
   });
 
+  const onClickVisibleButton = () => {
+    handleVisible(!visible);
+  };
+
   return (
     <div
       ref={(node) => drag(drop(node))}
       css={css`
+        width: 200px;
+        height: 70px;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.26);
+        margin: 10px 0;
+
         list-style: none;
-        border: solid 1px black;
-        opacity: ${!isDragging ? 1 : isTouchDevice ? 0.5 : 1};
+        opacity: ${!isDragging ? 1 : isTouchDevice ? 0.5 : 0};
+
+        display: flex;
+        align-items: center;
       `}
     >
-      <img width={100} src={url} css={css``} />
+      <img
+        src={url}
+        css={css`
+          width: 50px;
+          height: 50px;
+        `}
+      />
+      <div>
+        <IconButton onClick={onClickVisibleButton}>
+          {visible ? <VisibilityIcon /> : <VisibilityOffIcon />}
+        </IconButton>
+        <IconButton>
+          <DeleteIcon />
+        </IconButton>
+      </div>
     </div>
   );
 };
@@ -57,10 +89,11 @@ interface EEditorHierarchyDrawerProps {
   hierarchy: Hierarchy;
   onClose: () => void;
   onChangeOrder: (params: { objectId: string; to: number | "front" }) => void;
+  onChangeVisible: (params: { objectId: string; visible: boolean }) => void;
 }
 
 const EditorHierarchyDrawer: FC<EEditorHierarchyDrawerProps> = (props) => {
-  const { open, hierarchy, onClose, onChangeOrder } = props;
+  const { open, hierarchy, onClose, onChangeOrder, onChangeVisible } = props;
   const [reactDndBackend] = useState(() => {
     if (isTouchDevice) {
       return TouchBackend;
@@ -75,6 +108,13 @@ const EditorHierarchyDrawer: FC<EEditorHierarchyDrawerProps> = (props) => {
     });
   };
 
+  const handleVisible = (objectId: string) => (visible: boolean) => {
+    onChangeVisible({
+      objectId,
+      visible,
+    });
+  };
+
   return (
     <Drawer anchor="right" open={open} onClose={onClose}>
       <DndProvider backend={reactDndBackend}>
@@ -83,13 +123,15 @@ const EditorHierarchyDrawer: FC<EEditorHierarchyDrawerProps> = (props) => {
             list-style: none;
           `}
         >
-          {hierarchy.map(({ objectId, url }, index) => (
+          {hierarchy.map(({ objectId, url, visible }, index) => (
             <li key={objectId}>
               <HierarchyListItem
                 key={objectId}
                 objectId={objectId}
                 index={index}
                 url={url}
+                visible={visible}
+                handleVisible={handleVisible(objectId)}
                 onHover={onMove(index)}
               />
             </li>
