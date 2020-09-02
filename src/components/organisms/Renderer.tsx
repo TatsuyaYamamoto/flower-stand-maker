@@ -226,6 +226,134 @@ const GestureText: FC<GestureTextProps> = (props) => {
   );
 };
 
+interface GestureRectangleProps {
+  visible: boolean;
+  selected: boolean;
+  dragging: boolean;
+  onSelect: () => void;
+  onEdit: () => void;
+  onDragStart: () => void;
+  onDragEnd: () => void;
+}
+
+const GestureRectangle: FC<GestureRectangleProps> = (props) => {
+  const {
+    visible,
+    selected,
+    dragging,
+    onSelect,
+    onEdit,
+    onDragStart,
+    onDragEnd,
+  } = props;
+
+  const clickCount = useRef(0);
+  const domTarget = useRef(null);
+  const [{ x, y, zoom, scale, rotateZ }, setSpring] = useSpring(() => ({
+    rotateZ: 0,
+    scale: 1,
+    zoom: 0,
+    x: 0,
+    y: 0,
+  }));
+
+  const bind = useGesture(
+    {
+      onDragStart: ({ event }) => {
+        event?.stopPropagation();
+
+        onDragStart();
+        onSelect();
+      },
+      onDragEnd: ({ event }) => {
+        event?.stopPropagation();
+
+        onDragEnd();
+      },
+      onDrag: ({ offset: [x, y], event }) => {
+        event?.stopPropagation();
+
+        setSpring({ x, y });
+      },
+      onPinch: ({ args: [], offset: [d, a], event }) => {
+        event?.stopPropagation();
+
+        if (!selected) {
+          return;
+        }
+
+        setSpring({
+          zoom: d / 200,
+          rotateZ: a,
+        });
+      },
+      onClick: () => {
+        clickCount.current += 1;
+
+        setTimeout(() => {
+          if (clickCount.current === 0) {
+            // ignore
+            return;
+          }
+
+          if (clickCount.current === 1) {
+            // single click
+          } else {
+            // double click
+            onEdit();
+          }
+          clickCount.current = 0;
+        }, 200);
+      },
+    },
+    {
+      // react-spring#animated.div に対して直接 {...bind()}してもイベントがセットされないため(原因未調査）
+      // useRefによる実装にしている
+      domTarget,
+      eventOptions: { passive: false },
+    }
+  );
+
+  // @ts-ignore
+  useEffect(bind, [bind]);
+
+  return (
+    <animated.div
+      ref={domTarget}
+      style={{
+        x,
+        y,
+        rotateZ,
+        scale: to([scale, zoom], (s, z) => s + z),
+      }}
+      css={css`
+        position: absolute;
+        will-change: transform;
+        overflow: hidden;
+        box-sizing: content-box;
+
+        width: 120px;
+        height: 90px;
+        background-color: white;
+
+        filter: drop-shadow(0px 0px 4px rgba(0, 0, 0, 0.2));
+
+        touch-action: none;
+        user-select: none;
+        outline: none;
+        white-space: pre;
+
+        opacity: ${visible ? 1 : 0};
+        cursor: ${dragging ? "grabbing" : "grab"};
+        ${selected &&
+        `
+          border: solid 1px black;
+        `}
+      `}
+    />
+  );
+};
+
 interface RendererProps {
   hierarchy: Hierarchy;
   onMove: (params: {
@@ -359,6 +487,22 @@ const Renderer: FC<RendererProps> = (props) => {
               <GestureText
                 key={objectId}
                 text={text}
+                visible={visible}
+                selected={selectedObjectId === objectId}
+                dragging={draggingObjectId === objectId}
+                onSelect={onSelected(objectId)}
+                onEdit={onEditText(objectId)}
+                onDragStart={onDragStart(objectId)}
+                onDragEnd={onDragEnd(objectId)}
+              />
+            );
+          }
+
+          if (object.type === "rectangle") {
+            const { objectId, visible } = object;
+            return (
+              <GestureRectangle
+                key={objectId}
                 visible={visible}
                 selected={selectedObjectId === objectId}
                 dragging={draggingObjectId === objectId}

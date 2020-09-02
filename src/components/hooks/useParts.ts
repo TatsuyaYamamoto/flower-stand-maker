@@ -15,10 +15,15 @@ export interface TextPart extends Part {
   text: string;
 }
 
-export interface BoardPart extends Part {}
+export interface RectanglePart extends Part {}
 
 const textPartsState = atom<TextPart[]>({
   key: "textPartsState",
+  default: [],
+});
+
+const rectanglePartsState = atom<RectanglePart[]>({
+  key: "rectanglePartsState",
   default: [],
 });
 
@@ -46,13 +51,20 @@ const useParts = () => {
     { id: `stand_1`, url: `/assets/images/stand_1.png` },
   ]);
 
-  const [boards] = useState<BoardPart[]>([]);
-
   const [texts, setTexts] = useRecoilState(textPartsState);
+
+  const [rectangles, setRectangles] = useRecoilState(rectanglePartsState);
 
   const addTextPart = (text: string): string => {
     const partId = createPartId("text");
     setTexts((prev) => [...prev, { id: partId, text }]);
+
+    return partId;
+  };
+
+  const addRectanglePart = (): string => {
+    const partId = createPartId("rectangle");
+    setRectangles((prev) => [...prev, { id: partId }]);
 
     return partId;
   };
@@ -76,9 +88,10 @@ const useParts = () => {
     flowers,
     leaves,
     stands,
-    boards,
+    rectangles,
     texts,
     addTextPart,
+    addRectanglePart,
     changeTextPart,
   };
 };

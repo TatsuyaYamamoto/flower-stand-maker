@@ -32,7 +32,12 @@ const EditPage: NextPage = () => {
     null
   );
 
-  const { texts: textParts, addTextPart, changeTextPart } = useParts();
+  const {
+    texts: textParts,
+    addRectanglePart,
+    addTextPart,
+    changeTextPart,
+  } = useParts();
   const {
     hierarchy,
     addObject,
@@ -140,12 +145,21 @@ const EditPage: NextPage = () => {
     changeOrder({ objectId, to: "front" });
   };
 
-  const createCustomPart = (type: "board" | "text") => {
-    // TODO default valueをここに定義するのはいかがなものかと、、、
-    const partId = addTextPart("おめでとう");
-    addObject({
-      partId,
-    });
+  const createCustomPart = (type: "rectangle" | "text") => {
+    if (type === "text") {
+      // TODO default valueをここに定義するのはいかがなものかと、、、
+      const partId = addTextPart("おめでとう");
+      addObject({
+        partId,
+      });
+    }
+
+    if (type === "rectangle") {
+      const partId = addRectanglePart();
+      addObject({
+        partId,
+      });
+    }
 
     handleFlowerSelectOverlay();
   };

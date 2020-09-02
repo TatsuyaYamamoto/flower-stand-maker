@@ -1,5 +1,5 @@
 /** @jsx jsx */
-import React, { FC, useState } from "react";
+import React, { FC, useState, useMemo } from "react";
 import { jsx, css } from "@emotion/core";
 import { DndProvider, useDrag, useDrop } from "react-dnd";
 import { HTML5Backend } from "react-dnd-html5-backend";
@@ -174,6 +174,17 @@ const EditorHierarchyDrawer: FC<EditorHierarchyDrawerProps> = (props) => {
                     >
                       {object.text}
                     </div>
+                  )}
+                  {object.type === "rectangle" && (
+                    <div
+                      css={css`
+                        width: 50px;
+                        height: 50px;
+
+                        background-color: white;
+                        filter: drop-shadow(0px 0px 4px rgba(0, 0, 0, 0.2));
+                      `}
+                    />
                   )}
                 </HierarchyListItem>
               </li>

@@ -45,13 +45,13 @@ const PartSelectList: FC<PartSelectListProps> = (props) => {
 };
 
 interface CustomizeListProps {
-  onCreate: (type: "board" | "text") => void;
+  onCreate: (type: "rectangle" | "text") => void;
 }
 
 const CustomizeList: FC<CustomizeListProps> = (props) => {
   const { onCreate } = props;
 
-  const onClick = (type: "board" | "text") => () => {
+  const onClick = (type: "rectangle" | "text") => () => {
     onCreate(type);
   };
 
@@ -71,7 +71,7 @@ const CustomizeList: FC<CustomizeListProps> = (props) => {
           background-color: ghostwhite;
           border: solid 1px black;
         `}
-        onClick={onClick("board")}
+        onClick={onClick("rectangle")}
       />
       <div
         css={css`
@@ -123,7 +123,7 @@ export interface EditorPartSelectOverlayProps {
   open: boolean;
   handleClose: () => void;
   onSelectItem: (partId: string) => void;
-  onCreateCustomPart: (type: "board" | "text") => void;
+  onCreateCustomPart: (type: "rectangle" | "text") => void;
 }
 
 type TabValue = "flower" | "leaf" | "stand" | "customize";

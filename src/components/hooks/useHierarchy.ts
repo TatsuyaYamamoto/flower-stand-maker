@@ -23,12 +23,22 @@ export type HierarchyState = {
 };
 
 export type HierarchyObject = ObjectState &
-  ({ type: "image"; url: string } | { type: "text"; text: string });
+  (
+    | { type: "image"; url: string }
+    | { type: "text"; text: string }
+    | { type: "rectangle" }
+  );
 
 export type Hierarchy = HierarchyObject[];
 
 const useHierarchy = () => {
-  const { flowers, leaves, stands, texts: textParts } = useParts();
+  const {
+    flowers,
+    leaves,
+    stands,
+    texts: textParts,
+    rectangles: rectangleParts,
+  } = useParts();
   const allImageParts = useMemo(() => [...flowers, ...leaves, ...stands], [
     flowers,
     leaves,
@@ -94,6 +104,16 @@ const useHierarchy = () => {
             ...object,
             type: "text",
             text: textObject.text,
+          };
+        }
+
+        const rectangleObject = rectangleParts.find(
+          (p) => p.id === object.partId
+        );
+        if (rectangleObject) {
+          return {
+            ...object,
+            type: "rectangle",
           };
         }
 
