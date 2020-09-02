@@ -20,7 +20,6 @@ const isTouchDevice = "ontouchstart" in window;
 export interface HierarchyListItemProp {
   objectId: string;
   index: number;
-  url: string;
   visible: boolean;
   handleVisible: (visible: boolean) => void;
   onRemove: () => void;
@@ -28,7 +27,14 @@ export interface HierarchyListItemProp {
 }
 
 const HierarchyListItem: FC<HierarchyListItemProp> = (props) => {
-  const { objectId, url, visible, onHover, handleVisible, onRemove } = props;
+  const {
+    objectId,
+    visible,
+    onHover,
+    handleVisible,
+    onRemove,
+    children,
+  } = props;
 
   const [{ isDragging }, drag] = useDrag({
     item: { type: "item", objectId },
@@ -66,13 +72,7 @@ const HierarchyListItem: FC<HierarchyListItemProp> = (props) => {
         align-items: center;
       `}
     >
-      <img
-        src={url}
-        css={css`
-          width: 50px;
-          height: 50px;
-        `}
-      />
+      {children}
       <div>
         <IconButton onClick={onClickVisibleButton}>
           {visible ? <VisibilityIcon /> : <VisibilityOffIcon />}
@@ -85,7 +85,7 @@ const HierarchyListItem: FC<HierarchyListItemProp> = (props) => {
   );
 };
 
-interface EEditorHierarchyDrawerProps {
+interface EditorHierarchyDrawerProps {
   open: boolean;
   hierarchy: Hierarchy;
   onClose: () => void;
@@ -94,7 +94,7 @@ interface EEditorHierarchyDrawerProps {
   onRemoveObject: (params: { objectId: string }) => void;
 }
 
-const EditorHierarchyDrawer: FC<EEditorHierarchyDrawerProps> = (props) => {
+const EditorHierarchyDrawer: FC<EditorHierarchyDrawerProps> = (props) => {
   const {
     open,
     hierarchy,
@@ -136,20 +136,42 @@ const EditorHierarchyDrawer: FC<EEditorHierarchyDrawerProps> = (props) => {
             list-style: none;
           `}
         >
-          {hierarchy.map(({ objectId, url, visible }, index) => (
-            <li key={objectId}>
-              <HierarchyListItem
-                key={objectId}
-                objectId={objectId}
-                index={index}
-                url={url}
-                visible={visible}
-                handleVisible={handleVisible(objectId)}
-                onHover={onMove(index)}
-                onRemove={onRemove(objectId)}
-              />
-            </li>
-          ))}
+          {hierarchy.map((object, index) => {
+            const { objectId, visible } = object;
+            return (
+              <li key={objectId}>
+                <HierarchyListItem
+                  key={objectId}
+                  objectId={objectId}
+                  index={index}
+                  visible={visible}
+                  handleVisible={handleVisible(objectId)}
+                  onHover={onMove(index)}
+                  onRemove={onRemove(objectId)}
+                >
+                  {object.type === "image" && (
+                    <img
+                      src={object.url}
+                      css={css`
+                        width: 50px;
+                        height: 50px;
+                      `}
+                    />
+                  )}
+                  {object.type === "text" && (
+                    <div
+                      css={css`
+                        width: 50px;
+                        height: 50px;
+                      `}
+                    >
+                      {object.text}
+                    </div>
+                  )}
+                </HierarchyListItem>
+              </li>
+            );
+          })}
         </ul>
       </DndProvider>
     </Drawer>

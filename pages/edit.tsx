@@ -10,6 +10,7 @@ import EditorBottomNavigation, {
 import EditorPartSelectOverlay from "@/components/organisms/EditorPartSelectOverlay";
 
 import useHierarchy from "@/components/hooks/useHierarchy";
+import useParts from "@/components/hooks/useParts";
 
 const RendererWithNoSSR = dynamic(
   () => import("@/components/organisms/Renderer"),
@@ -26,6 +27,7 @@ const EditPage: NextPage = () => {
   const [isFlowerSelectOverlayOpen, setFlowerSelectOverlayOpen] = useState(
     false
   );
+  const { addTextPart } = useParts();
   const {
     hierarchy,
     addObject,
@@ -116,6 +118,16 @@ const EditPage: NextPage = () => {
     changeOrder({ objectId, to: "front" });
   };
 
+  const createCustomPart = (type: "board" | "text") => {
+    // TODO default valueをここに定義するのはいかがなものかと、、、
+    const partId = addTextPart("おめでとう");
+    addObject({
+      partId,
+    });
+
+    handleFlowerSelectOverlay();
+  };
+
   return (
     <>
       <div>
@@ -140,6 +152,7 @@ const EditPage: NextPage = () => {
         open={isFlowerSelectOverlayOpen}
         handleClose={handleFlowerSelectOverlay}
         onSelectItem={handleSelectItem}
+        onCreateCustomPart={createCustomPart}
       />
       <EditorHierarchyDrawerWithNoSsr
         open={isLayerDrawerOpen}

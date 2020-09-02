@@ -2,6 +2,8 @@ import React, { FC, useEffect } from "react";
 import { AppProps } from "next/app";
 import Head from "next/head";
 
+import { RecoilRoot } from "recoil";
+
 import { ThemeProvider } from "@material-ui/core/styles";
 import CssBaseline from "@material-ui/core/CssBaseline";
 
@@ -29,7 +31,9 @@ const MyApp: FC<AppProps> = (props) => {
       <ThemeProvider theme={theme}>
         {/* CssBaseline kickstart an elegant, consistent, and simple baseline to build upon. */}
         <CssBaseline />
-        <Component {...pageProps} />
+        <RecoilRoot>
+          <Component {...pageProps} />
+        </RecoilRoot>
       </ThemeProvider>
     </>
   );

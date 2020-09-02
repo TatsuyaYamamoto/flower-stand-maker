@@ -100,6 +100,109 @@ const GestureImage: FC<GestureImageProps> = (props) => {
   );
 };
 
+interface GestureTextProps {
+  text: string;
+  visible: boolean;
+  selected: boolean;
+  dragging: boolean;
+  onSelect: () => void;
+  onDragStart: () => void;
+  onDragEnd: () => void;
+}
+
+const GestureText: FC<GestureTextProps> = (props) => {
+  const {
+    text,
+    visible,
+    selected,
+    dragging,
+    onSelect,
+    onDragStart,
+    onDragEnd,
+  } = props;
+
+  const domTarget = useRef(null);
+  const [{ x, y, zoom, scale, rotateZ }, setSpring] = useSpring(() => ({
+    rotateZ: 0,
+    scale: 1,
+    zoom: 0,
+    x: 0,
+    y: 0,
+  }));
+
+  const bind = useGesture(
+    {
+      onDragStart: ({ event }) => {
+        event?.stopPropagation();
+
+        onDragStart();
+        onSelect();
+      },
+      onDragEnd: ({ event }) => {
+        event?.stopPropagation();
+
+        onDragEnd();
+      },
+      onDrag: ({ offset: [x, y], event }) => {
+        event?.stopPropagation();
+
+        setSpring({ x, y });
+      },
+      onPinch: ({ args: [], offset: [d, a], event }) => {
+        event?.stopPropagation();
+
+        if (!selected) {
+          return;
+        }
+
+        setSpring({
+          zoom: d / 200,
+          rotateZ: a,
+        });
+      },
+    },
+    {
+      // react-spring#animated.div に対して直接 {...bind()}してもイベントがセットされないため(原因未調査）
+      // useRefによる実装にしている
+      domTarget,
+      eventOptions: { passive: false },
+    }
+  );
+
+  // @ts-ignore
+  useEffect(bind, [bind]);
+
+  return (
+    <animated.div
+      ref={domTarget}
+      style={{
+        x,
+        y,
+        rotateZ,
+        scale: to([scale, zoom], (s, z) => s + z),
+      }}
+      css={css`
+        position: absolute;
+        will-change: transform;
+        overflow: hidden;
+        box-sizing: content-box;
+
+        touch-action: none;
+        user-select: none;
+
+        opacity: ${visible ? 1 : 0};
+        cursor: ${dragging ? "grabbing" : "grab"};
+        ${selected &&
+        `
+          border: solid 1px black;
+        `}
+      `}
+    >
+      {text}
+    </animated.div>
+  );
+};
+
 interface RendererProps {
   hierarchy: Hierarchy;
   onMove: (params: {
@@ -199,19 +302,40 @@ const Renderer: FC<RendererProps> = (props) => {
           height: 100%;
         `}
       >
-        {hierarchy.map(({ objectId, url, visible }) => {
-          return (
-            <GestureImage
-              key={objectId}
-              url={url}
-              visible={visible}
-              selected={selectedObjectId === objectId}
-              dragging={draggingObjectId === objectId}
-              onSelect={onSelected(objectId)}
-              onDragStart={onDragStart(objectId)}
-              onDragEnd={onDragEnd(objectId)}
-            />
-          );
+        {hierarchy.map((object) => {
+          if (object.type === "image") {
+            const { objectId, url, visible } = object;
+            return (
+              <GestureImage
+                key={objectId}
+                url={url}
+                visible={visible}
+                selected={selectedObjectId === objectId}
+                dragging={draggingObjectId === objectId}
+                onSelect={onSelected(objectId)}
+                onDragStart={onDragStart(objectId)}
+                onDragEnd={onDragEnd(objectId)}
+              />
+            );
+          }
+
+          if (object.type === "text") {
+            const { objectId, text, visible } = object;
+            return (
+              <GestureText
+                key={objectId}
+                text={text}
+                visible={visible}
+                selected={selectedObjectId === objectId}
+                dragging={draggingObjectId === objectId}
+                onSelect={onSelected(objectId)}
+                onDragStart={onDragStart(objectId)}
+                onDragEnd={onDragEnd(objectId)}
+              />
+            );
+          }
+
+          return <></>;
         })}
       </div>
     </div>

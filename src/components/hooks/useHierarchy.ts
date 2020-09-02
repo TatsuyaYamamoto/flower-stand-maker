@@ -22,10 +22,18 @@ export type HierarchyState = {
   [objectId in ObjectId]: ObjectState;
 };
 
-export type Hierarchy = (ObjectState & { url: string })[];
+export type HierarchyObject = ObjectState &
+  ({ type: "image"; url: string } | { type: "text"; text: string });
+
+export type Hierarchy = HierarchyObject[];
 
 const useHierarchy = () => {
-  const { all: allParts } = useParts();
+  const { flowers, leaves, stands, texts: textParts } = useParts();
+  const allImageParts = useMemo(() => [...flowers, ...leaves, ...stands], [
+    flowers,
+    leaves,
+    stands,
+  ]);
 
   /**
    * @private
@@ -68,12 +76,30 @@ const useHierarchy = () => {
       return 0;
     });
 
-    return orderedHierarchy.map((object) => {
-      return {
-        ...object,
-        url: allParts.find((p) => p.id === object.partId)?.url ?? "",
-      };
-    });
+    return orderedHierarchy
+      .map((object) => {
+        const imageObject = allImageParts.find((p) => p.id === object.partId);
+
+        if (imageObject) {
+          return {
+            ...object,
+            type: "image",
+            url: imageObject.url,
+          };
+        }
+
+        const textObject = textParts.find((p) => p.id === object.partId);
+        if (textObject) {
+          return {
+            ...object,
+            type: "text",
+            text: textObject.text,
+          };
+        }
+
+        return null;
+      })
+      .filter((object): object is HierarchyObject => Boolean(object));
   }, [hierarchyState]);
 
   const addObject = (params: { partId: string }) => {
