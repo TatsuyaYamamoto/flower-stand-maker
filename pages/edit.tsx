@@ -1,5 +1,5 @@
 /** @jsx jsx */
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import { NextPage } from "next";
 import dynamic from "next/dynamic";
 import { jsx, css } from "@emotion/core";
@@ -11,6 +11,7 @@ import EditorPartSelectOverlay from "@/components/organisms/EditorPartSelectOver
 
 import useHierarchy from "@/components/hooks/useHierarchy";
 import useParts from "@/components/hooks/useParts";
+import TextObjectEditDialog from "@/components/organisms/TextObjectEditDialog";
 
 const RendererWithNoSSR = dynamic(
   () => import("@/components/organisms/Renderer"),
@@ -27,7 +28,11 @@ const EditPage: NextPage = () => {
   const [isFlowerSelectOverlayOpen, setFlowerSelectOverlayOpen] = useState(
     false
   );
-  const { addTextPart } = useParts();
+  const [editingTextPartId, setEditingTextPartId] = useState<string | null>(
+    null
+  );
+
+  const { texts: textParts, addTextPart, changeTextPart } = useParts();
   const {
     hierarchy,
     addObject,
@@ -36,6 +41,10 @@ const EditPage: NextPage = () => {
     changeOrder,
     changeScale,
   } = useHierarchy();
+
+  const editingText = useMemo(() => {
+    return textParts.find((part) => part.id === editingTextPartId)?.text;
+  }, [textParts, editingTextPartId]);
 
   const onBottomNavigationClicked = (value: EditorBottomNavigationValue) => {
     if (value === "layer") {
@@ -55,6 +64,19 @@ const EditPage: NextPage = () => {
 
   const handleFlowerSelectOverlay = () => {
     setFlowerSelectOverlayOpen((value) => !value);
+  };
+
+  const closeTextObjectEditDialog = () => {
+    setEditingTextPartId(null);
+  };
+
+  const openEditTextDialog = (objectId: string) => {
+    const partId = hierarchy.find((object) => object.objectId === objectId)
+      ?.partId;
+    if (!partId) {
+      return;
+    }
+    setEditingTextPartId(partId);
   };
 
   const handleSelectItem = (partId: string) => {
@@ -128,6 +150,17 @@ const EditPage: NextPage = () => {
     handleFlowerSelectOverlay();
   };
 
+  const onChangeTextPart = (text: string) => {
+    if (!editingTextPartId) {
+      return;
+    }
+
+    changeTextPart({
+      partId: editingTextPartId,
+      text,
+    });
+  };
+
   return (
     <>
       <div>
@@ -142,6 +175,7 @@ const EditPage: NextPage = () => {
           <RendererWithNoSSR
             hierarchy={hierarchy}
             onMove={moveObject}
+            onEditTextObject={openEditTextDialog}
             onBringToFront={bringObject}
             onTransform={transformObject}
           />
@@ -161,6 +195,11 @@ const EditPage: NextPage = () => {
         onChangeOrder={changeOrder}
         onChangeVisible={changeVisible}
         onRemoveObject={removeObject}
+      />
+      <TextObjectEditDialog
+        text={editingText}
+        onChange={onChangeTextPart}
+        handleClose={closeTextObjectEditDialog}
       />
     </>
   );

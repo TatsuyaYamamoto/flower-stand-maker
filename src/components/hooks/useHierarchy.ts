@@ -100,7 +100,7 @@ const useHierarchy = () => {
         return null;
       })
       .filter((object): object is HierarchyObject => Boolean(object));
-  }, [hierarchyState]);
+  }, [hierarchyState, allImageParts, textParts]);
 
   const addObject = (params: { partId: string }) => {
     const { partId } = params;

@@ -106,6 +106,7 @@ interface GestureTextProps {
   selected: boolean;
   dragging: boolean;
   onSelect: () => void;
+  onEdit: () => void;
   onDragStart: () => void;
   onDragEnd: () => void;
 }
@@ -117,10 +118,12 @@ const GestureText: FC<GestureTextProps> = (props) => {
     selected,
     dragging,
     onSelect,
+    onEdit,
     onDragStart,
     onDragEnd,
   } = props;
 
+  const clickCount = useRef(0);
   const domTarget = useRef(null);
   const [{ x, y, zoom, scale, rotateZ }, setSpring] = useSpring(() => ({
     rotateZ: 0,
@@ -160,6 +163,24 @@ const GestureText: FC<GestureTextProps> = (props) => {
           rotateZ: a,
         });
       },
+      onClick: () => {
+        clickCount.current += 1;
+
+        setTimeout(() => {
+          if (clickCount.current === 0) {
+            // ignore
+            return;
+          }
+
+          if (clickCount.current === 1) {
+            // single click
+          } else {
+            // double click
+            onEdit();
+          }
+          clickCount.current = 0;
+        }, 200);
+      },
     },
     {
       // react-spring#animated.div に対して直接 {...bind()}してもイベントがセットされないため(原因未調査）
@@ -189,6 +210,8 @@ const GestureText: FC<GestureTextProps> = (props) => {
 
         touch-action: none;
         user-select: none;
+        outline: none;
+        white-space: pre;
 
         opacity: ${visible ? 1 : 0};
         cursor: ${dragging ? "grabbing" : "grab"};
@@ -215,10 +238,17 @@ interface RendererProps {
     angle: number;
   }) => void;
   onBringToFront: (params: { objectId: string }) => void;
+  onEditTextObject: (objectId: string) => void;
 }
 
 const Renderer: FC<RendererProps> = (props) => {
-  const { hierarchy, onMove, onBringToFront, onTransform } = props;
+  const {
+    hierarchy,
+    onMove,
+    onBringToFront,
+    onTransform,
+    onEditTextObject,
+  } = props;
   const stageWidth = 300;
   const stageHeight = 400;
 
@@ -254,6 +284,10 @@ const Renderer: FC<RendererProps> = (props) => {
   const onSelected = (objectId: string) => () => {
     setSelectedObjectId(objectId);
     onBringToFront({ objectId });
+  };
+
+  const onEditText = (objectId: string) => () => {
+    onEditTextObject(objectId);
   };
 
   const onDragStart = (objectId: string) => () => {
@@ -329,6 +363,7 @@ const Renderer: FC<RendererProps> = (props) => {
                 selected={selectedObjectId === objectId}
                 dragging={draggingObjectId === objectId}
                 onSelect={onSelected(objectId)}
+                onEdit={onEditText(objectId)}
                 onDragStart={onDragStart(objectId)}
                 onDragEnd={onDragEnd(objectId)}
               />

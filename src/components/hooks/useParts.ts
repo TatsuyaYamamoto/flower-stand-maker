@@ -57,6 +57,21 @@ const useParts = () => {
     return partId;
   };
 
+  const changeTextPart = (params: { partId: string; text: string }): void => {
+    setTexts((prev) =>
+      prev.map((part) => {
+        if (part.id === params.partId) {
+          return {
+            ...part,
+            text: params.text,
+          };
+        }
+
+        return part;
+      })
+    );
+  };
+
   return {
     flowers,
     leaves,
@@ -64,6 +79,7 @@ const useParts = () => {
     boards,
     texts,
     addTextPart,
+    changeTextPart,
   };
 };
 
