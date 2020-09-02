@@ -103,6 +103,9 @@ const EditorHierarchyDrawer: FC<EditorHierarchyDrawerProps> = (props) => {
     onChangeVisible,
     onRemoveObject,
   } = props;
+
+  const list = useMemo(() => hierarchy.reverse(), [hierarchy]);
+
   const [reactDndBackend] = useState(() => {
     if (isTouchDevice) {
       return TouchBackend;
@@ -136,7 +139,7 @@ const EditorHierarchyDrawer: FC<EditorHierarchyDrawerProps> = (props) => {
             list-style: none;
           `}
         >
-          {hierarchy.map((object, index) => {
+          {list.map((object, index) => {
             const { objectId, visible } = object;
             return (
               <li key={objectId}>
