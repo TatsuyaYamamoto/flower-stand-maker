@@ -163,6 +163,10 @@ const EditorHierarchyDrawer: FC<EditorHierarchyDrawerProps> = (props) => {
                       css={css`
                         width: 50px;
                         height: 50px;
+
+                        overflow: hidden;
+                        white-space: nowrap;
+                        text-overflow: ellipsis;
                       `}
                     >
                       {object.text}
