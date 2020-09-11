@@ -36,19 +36,25 @@ const useParts = () => {
   };
 
   const [flowers] = useState<ImagePart[]>([
-    { id: `flower_sunflower`, url: `/assets/images/flower_sunflower.png` },
-    { id: `flower_rose_blue`, url: `/assets/images/flower_rose_blue.png` },
-    { id: `flower_rose_red`, url: `/assets/images/flower_rose_red.png` },
-    { id: `flower_rose_white`, url: `/assets/images/flower_rose_white.png` },
+    { id: `flower_ayame`, url: `/assets/images/parts/flower_ayame.png` },
+    { id: `flower_christmasrose`, url: `/assets/images/parts/flower_christmasrose.png` },
+    { id: `flower_gabera`, url: `/assets/images/parts/flower_gabera.png` },
+    { id: `flower_katorea`, url: `/assets/images/parts/flower_katorea.png` },
+    { id: `flower_rose_blue`, url: `/assets/images/parts/flower_rose_blue.png` },
+    { id: `flower_rose_red`, url: `/assets/images/parts/flower_rose_red.png` },
+    { id: `flower_rose_white`, url: `/assets/images/parts/flower_rose_white.png` },
+    { id: `flower_sunflower`, url: `/assets/images/parts/flower_sunflower.png` },
   ]);
 
   const [leaves] = useState<ImagePart[]>([
-    { id: `leaf_happa_1`, url: `/assets/images/leaf_happa_1.png` },
-    { id: `leaf_kasumisou`, url: `/assets/images/leaf_kasumisou.png` },
+    { id: `leaf_gama`, url: `/assets/images/parts/leaf_gama.png` },
+    { id: `leaf_happa_1`, url: `/assets/images/parts/leaf_happa_1.png` },
+    { id: `leaf_kakurigo`, url: `/assets/images/parts/leaf_kakurigo.png` },
+    { id: `leaf_kasumisou`, url: `/assets/images/parts/leaf_kasumisou.png` },
   ]);
 
   const [stands] = useState<ImagePart[]>([
-    { id: `stand_1`, url: `/assets/images/stand_1.png` },
+    { id: `stand_1`, url: `/assets/images/parts/stand_1.png` },
   ]);
 
   const [texts, setTexts] = useRecoilState(textPartsState);
