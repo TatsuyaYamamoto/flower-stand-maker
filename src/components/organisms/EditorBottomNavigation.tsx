@@ -34,11 +34,13 @@ const EditorBottomNavigation: FC<EditorBottomNavigationProps> = (props) => {
 
   return (
     <BottomNavigation className={classes.root} onChange={onChange}>
-      <BottomNavigationAction
-        label="Favorites"
-        value="image"
-        icon={<ImageIcon />}
-      />
+      {false && (
+        <BottomNavigationAction
+          label="Favorites"
+          value="image"
+          icon={<ImageIcon />}
+        />
+      )}
       <BottomNavigationAction
         label="Nearby"
         value="flower"
